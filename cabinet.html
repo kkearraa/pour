@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pour. | What's in My Cabinet?</title>
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo">pour.</a>
+      <div class="nav-controls">
+        <button id="theme-toggle" class="theme-btn">☀️ Light</button>
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cabinet.html" class="active">Cabinet Search</a></li>
+        <li><a href="low-abv.html">Zero-Proof / Low-ABV</a></li>
+        <li><a href="minimalist.html">3-Ingredient</a></li>
+        <li><a href="quiz.html">Flavor Quiz</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Page Header -->
+  <section class="hero">
+    <h1>What's in My Cabinet?</h1>
+    <p>Check off the spirits, juices, and syrups you have on hand to discover what you can mix right now.</p>
+  </section>
+
+  <main class="container cabinet-layout">
+    
+    <!-- Sidebar: Categorized Ingredient Selector -->
+    <aside class="card cabinet-sidebar">
+      <div class="sidebar-header">
+        <h2>Your Inventory</h2>
+        <button id="clear-cabinet-btn" class="btn-clear">Clear All</button>
+      </div>
+
+      <!-- Ingredient Quick Search -->
+      <input type="text" id="ingredient-search" placeholder="Search ingredients (e.g., Lime, Bourbon)..." class="search-input">
+
+      <!-- Dynamic Categorized Checkboxes -->
+      <div id="cabinet-categories" class="categories-wrapper">
+        <!-- Rendered by script.js -->
+      </div>
+    </aside>
+
+    <!-- Results Display Section -->
+    <section class="cabinet-results-container">
+      
+      <!-- Global Controls for Matching Results -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <label for="servings-input">Servings:</label>
+          <input type="number" id="servings-input" value="1" min="1" max="12" class="servings-input">
+          <span>person(s)</span>
+        </div>
+
+        <div class="control-group">
+          <label>Unit System:</label>
+          <button id="unit-toggle" class="unit-btn">ML</button>
+        </div>
+      </div>
+
+      <div class="results-header">
+        <h2 id="results-count-title">Select ingredients to start searching</h2>
+      </div>
+
+      <!-- Matching Recipe Cards Container -->
+      <div id="cabinet-results-grid" class="cocktail-grid">
+        <div class="no-results-card card">
+          <p>👈 Check off ingredients in the sidebar to see cocktails you can make!</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  
+  <!-- Recipe Details Modal -->
+  <div id="recipe-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content">
+      <button id="modal-close-btn" class="modal-close">&times;</button>
+      <h2 id="modal-title">Drink Name</h2>
+      <p id="modal-tagline" class="card-subtitle">Tagline</p>
+      
+      <div class="modal-meta-grid">
+        <div><strong>Glassware:</strong> <span id="modal-glass">-</span></div>
+        <div><strong>Method:</strong> <span id="modal-method">-</span></div>
+        <div><strong>Garnish:</strong> <span id="modal-garnish">-</span></div>
+        <div><strong>Ice:</strong> <span id="modal-ice">-</span></div>
+      </div>
+
+      <h3>Ingredients</h3>
+      <ul id="modal-ingredients" class="card-ingredients"></ul>
+
+      <h3 style="margin-top:1.25rem;">Instructions</h3>
+      <ol id="modal-instructions" class="modal-instructions"></ol>
+    </div>
+  </div>
+
+  <!-- GLOBAL FOOTER -->
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <a href="index.html" class="footer-logo">pour.</a>
+      <p class="footer-tagline">Curated drinks, modern mixology.</p>
+    </div>
+    
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="cabinet.html">Cabinet</a>
+      <a href="low-abv.html">Low & Zero-ABV</a>
+      <a href="minimalist.html">3-Ingredient</a>
+      <a href="quiz.html">Quiz</a>
+    </div>
+
+    <div class="footer-copy">
+      <p>&copy; <span id="copyright-year"></span> pour. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
+  <div class="cookie-content">
+    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here.</p>
+    <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
+  </div>
+</div>
+<script src="./js/script.js"></script>
+</body>
+</html>
