@@ -1,0 +1,974 @@
+/* Color System & Theme Variables */
+:root {
+  --bg-primary: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-hover: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #f59e0b;
+  --accent-light: #fbbf24;
+  --border-color: #334155;
+  --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --accent: #d97706;
+  --accent-light: #f59e0b;
+  --border-color: #e2e8f0;
+  --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.25s, color 0.25s, border-color 0.25s; }
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Navbar & Burger Menu */
+header {
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-controls { display: flex; align-items: center; gap: 1rem; order: 3; flex-shrink: 0; }
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+  align-items: center;
+  order: 2; /* desktop order: logo | links | theme toggle */
+}
+
+.nav-menu a {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nav-menu a:hover, .nav-menu a.active { color: var(--accent); }
+
+/* Theme Toggle Button */
+.theme-btn, .unit-btn {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Hamburger Icon */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.bar { width: 25px; height: 3px; background-color: var(--text-main); border-radius: 2px; }
+
+/* Responsive Mobile Nav (hamburger below 960px so 5 links never get cramped) */
+@media (max-width: 960px) {
+  .hamburger { display: flex; }
+  .navbar { padding: 0.75rem 1rem; }
+
+  .nav-menu {
+    position: absolute;
+    top: 100%;               /* sits directly under the header, whatever its height */
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 0 1rem;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;        /* short landscape phones can scroll the menu */
+    transform: translateX(-100%);
+    visibility: hidden;      /* closed menu is skipped by keyboard / screen readers */
+    transition: transform 0.25s ease, visibility 0s linear 0.25s,
+                background-color 0.25s, border-color 0.25s;
+  }
+  .nav-menu.active {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s, background-color 0.25s, border-color 0.25s;
+  }
+  .nav-menu a {
+    display: block;
+    padding: 0.85rem 1.5rem;
+    text-align: center;
+  }
+}
+
+/* Containers & Cards */
+.container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 3rem 1rem 1.5rem 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.2rem);
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+  overflow-wrap: break-word;
+}
+
+.hero p {
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin-inline: auto;
+}
+
+/* Controls Bar */
+.controls-bar {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  box-shadow: var(--card-shadow);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.servings-input {
+  width: 60px;
+  padding: 0.4rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-main);
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Card grid: columns adapt to the space available (3 on desktop, 2 on tablet, 1 on phone),
+   including inside the narrower Cabinet results column and the Quiz results. */
+.cocktail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* Individual Card Design matching screenshot frame style */
+.cocktail-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.card-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background-color: var(--bg-surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.card-ingredients {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+  font-size: 0.9rem;
+  flex-grow: 1;
+}
+
+.card-ingredients li {
+  border-bottom: 1px dashed var(--border-color);
+  padding: 0.3rem 0;
+}
+
+/* Cabinet results sit beside the sidebar, so allow slightly narrower cards there */
+.cabinet-results-container .cocktail-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+
+/* Controls bar stacks on phones (grid columns now adapt on their own) */
+@media (max-width: 640px) {
+  .controls-bar {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+/* Cabinet Specific Layout */
+.cabinet-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.cabinet-sidebar {
+  position: sticky;
+  top: 90px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.btn-clear {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-clear:hover { text-decoration: underline; }
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  outline: none;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+}
+
+/* Category Accordion / Groups */
+.category-group {
+  margin-bottom: 1.25rem;
+}
+
+.category-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.25rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Results Display Cards */
+.results-header {
+  margin-bottom: 1.5rem;
+}
+
+.match-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.match-badge.full {
+  background-color: #065f46;
+  color: #a7f3d0;
+}
+
+.no-results-card {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .cabinet-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .cabinet-sidebar {
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+}
+/* Partial Match Badges & Card Styles */
+.match-badge.full {
+  background-color: #065f46;
+  color: #a7f3d0;
+}
+
+.match-badge.partial {
+  background-color: #78350f;
+  color: #fde68a;
+  border: 1px solid #b45309;
+}
+
+.card-partial {
+  opacity: 0.9;
+  border-style: dashed;
+}
+/* Low-ABV Filter Tabs */
+.filter-controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tab-filters {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.6rem 1.25rem;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.low-abv-controls {
+  margin-bottom: 0;
+}
+
+/* ABV Badges on Cards */
+.abv-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.abv-badge.zero {
+  background-color: #0284c7;
+  color: #e0f2fe;
+}
+
+.abv-badge.low {
+  background-color: #d97706;
+  color: #fef3c7;
+}
+/* Minimalist Badge & Card Styling */
+.minimalist-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  background-color: #059669;
+  color: #ecfdf5;
+}
+
+.minimalist-tab-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.6rem 1.25rem;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.minimalist-tab-btn:hover {
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
+.minimalist-tab-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+/* Flavor Quiz Styles */
+.quiz-container {
+  max-width: 800px;
+  margin: 0 auto 3rem auto;
+}
+
+.quiz-card {
+  padding: 2rem;
+  text-align: center;
+}
+
+.quiz-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.step-indicator {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.question-title {
+  margin: 1rem 0 1.5rem 0;
+  font-size: 1.4rem;
+  color: var(--text-main);
+}
+
+.quiz-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.quiz-option-btn {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 1.2rem 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.quiz-option-btn span {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--text-muted);
+}
+
+.quiz-option-btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.quiz-results.hidden {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .quiz-options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Card Favorite & Action Buttons */
+.card-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.fav-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 0;
+}
+
+.fav-btn:hover {
+  transform: scale(1.2);
+}
+
+.btn-shopping {
+  margin-top: 0.75rem;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px dashed var(--accent);
+  color: var(--text-main);
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-shopping:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.clickable-card {
+  cursor: pointer;
+}
+
+/* Modal Overlay & Dialog */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+  opacity: 0;
+  visibility: hidden;      /* closed popup can't be reached with the Tab key */
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, visibility 0s;
+}
+
+.modal-content {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 550px;
+  max-height: 85vh;
+  max-height: min(100%, 85dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--text-main);
+}
+
+.modal-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+  background: var(--bg-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.modal-instructions {
+  margin-top: 1rem;
+  padding-left: 1.2rem;
+  line-height: 1.6;
+}
+/*footer style*/
+.site-footer {
+  width: 100%;
+  padding: 2.5rem 1.5rem 1.5rem;
+  margin-top: 4rem;
+  border-top: 1px solid var(--border-color, #2a2a2a);
+  background-color: var(--bg-footer, #0f0f0f);
+  color: var(--text-color, #e0e0e0);
+}
+
+.footer-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  text-decoration: none;
+  color: inherit;
+}
+
+.footer-tagline {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.footer-links a {
+  font-size: 0.9rem;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.footer-links a:hover {
+  opacity: 1;
+}
+
+.footer-copy {
+  font-size: 0.8rem;
+  opacity: 0.4;
+  margin-top: 0.5rem;
+}
+
+/*cookie banner style*/
+.cookie-banner {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: calc(100% - 3rem);
+  max-width: 380px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 99999; /* sit on top of all page content */
+}
+
+.cookie-banner.hidden {
+  display: none !important;
+}
+
+.cookie-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cookie-content p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.cookie-btn {
+  align-self: flex-end;
+  background-color: var(--accent-color, #ffffff);
+  color: var(--bg-color, #000000);
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.cookie-btn:hover {
+  opacity: 0.85;
+}
+
+/* Phones: full-width banner. Kept AFTER the base rule so it actually wins. */
+@media (max-width: 480px) {
+  .cookie-banner {
+    left: 1rem;
+    right: 1rem;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+  }
+}
+/* Container that locks in the image frame dimensions */
+.card-image-wrapper {
+  width: 100%;
+  height: 200px; /* Adjust height to fit your card design */
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  background-color: #121212; /* Neutral fallback color while loading */
+  position: relative;
+}
+
+/* Image scaling & fitting rule */
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Automatically crops and scales without stretching */
+  object-position: center; /* Keeps the middle of the image focused */
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+/* Optional subtle hover zoom effect */
+.cocktail-card:hover .card-img {
+  transform: scale(1.04);
+}
+
+/* =====================================================================
+   Responsive refinements
+   ===================================================================== */
+
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Cabinet: on small screens the long ingredient list scrolls inside the panel
+   instead of pushing the results far down the page */
+@media (max-width: 900px) {
+  .categories-wrapper {
+    max-height: 45vh;
+    max-height: 45dvh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  .container { padding: 0 1rem; }
+  .hero { padding: 2rem 1rem 1rem; }
+  .card, .quiz-card { padding: 1.25rem; }
+  .controls-bar { padding: 1rem; }
+  .cocktail-grid { gap: 1.25rem; margin-bottom: 2rem; }
+  .tab-filters { gap: 0.5rem; }
+  .tab-btn, .minimalist-tab-btn { padding: 0.5rem 0.9rem; font-size: 0.9rem; }
+  .question-title { font-size: 1.2rem; }
+  .modal-content { padding: 1.5rem 1.25rem; }
+  .modal-meta-grid { grid-template-columns: 1fr; }
+  .site-footer { padding: 2rem 1rem 1.25rem; margin-top: 2.5rem; }
+}
+
+/* Touch screens: comfortable tap targets (44px is the usual minimum) */
+@media (pointer: coarse) {
+  .theme-btn, .unit-btn, .tab-btn, .minimalist-tab-btn,
+  .btn-shopping, .btn-clear, .cookie-btn, .servings-input { min-height: 44px; }
+  .hamburger, .fav-btn, .modal-close { min-width: 44px; min-height: 44px; }
+  .checkbox-label { min-height: 44px; margin-bottom: 0; }
+  .nav-menu a { min-height: 44px; }
+}
+
+/* No sticky hover effects on touch devices */
+@media (hover: none) {
+  .quiz-option-btn:hover { transform: none; }
+  .fav-btn:hover { transform: none; }
+  .cocktail-card:hover .card-img { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =====================================================================
+   Float-in reveal: cards fade and float up as they scroll into view
+   (script.js adds .reveal to new cards and .is-visible when they enter the screen)
+   ===================================================================== */
+
+/* Generic hide helper. The quiz question card was never actually hidden before,
+   because only .quiz-results.hidden and .cookie-banner.hidden existed. */
+.hidden { display: none !important; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  animation: floatIn 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+/* The photo settles in a little slower than the card around it */
+.reveal.is-visible .card-img {
+  animation: imageSettle 1.2s cubic-bezier(0.22, 0.8, 0.3, 1) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(32px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes imageSettle {
+  from { transform: scale(1.12); }
+  to   { transform: scale(1); }
+}
+
+/* Placeholder shown when a photo file is missing or fails to load */
+.card-image-wrapper.img-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-surface-hover), var(--bg-primary));
+}
+
+.card-image-wrapper.img-missing::after {
+  content: "🍸";
+  font-size: 2.75rem;
+  opacity: 0.55;
+}
+
+/* People who ask their device for less motion get the cards instantly */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+  .reveal.is-visible,
+  .reveal.is-visible .card-img { animation: none; }
+}
