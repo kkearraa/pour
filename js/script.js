@@ -1,20 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // =========================================================================
-  // 1. GLOBAL STATE, FAVORITES & CONVERSIONS
-  // =========================================================================
+  //Global state, favorites and conversions
   let currentUnit = "ml"; // 'oz', 'ml', 'cl'
   const CONVERSIONS = { oz: 1, ml: 30, cl: 3 };
 
-  // Safe localStorage wrappers. Storage can be blocked (private mode, strict browser
-  // settings) and a single thrown error here used to stop the whole script.
   const store = {
     get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* ignore */ } },
     remove(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
   };
 
-  // Migrates old storage key if present, otherwise uses 'pour_favorites'
   const oldFavs = store.get("sipLogicFavorites");
   if (oldFavs) {
     store.set("pour_favorites", oldFavs);
@@ -26,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const parsed = JSON.parse(store.get("pour_favorites") || "[]");
     if (Array.isArray(parsed)) favorites = parsed;
   } catch (e) {
-    favorites = []; // corrupted value: start fresh instead of crashing
+    favorites = []; 
   }
 
   function toggleFavorite(drinkName) {
@@ -43,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = `Shopping List Item: ${ingredientName}`;
     let copied = false;
 
-    // navigator.clipboard only exists on https:// (or localhost) pages
+
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
@@ -51,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (e) { copied = false; }
 
-    // Fallback for http:// pages and older browsers
     if (!copied) {
       try {
         const ta = document.createElement("textarea");
@@ -74,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const unitBtn = document.getElementById("unit-toggle");
   const servingsInput = document.getElementById("servings-input");
 
-  // Servings is always a number between 1 and 12 (typing -3 used to give negative amounts)
   function getServings() {
     const n = parseFloat(servingsInput ? servingsInput.value : 1);
     if (!Number.isFinite(n)) return 1;
@@ -83,15 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (servingsInput) {
     servingsInput.addEventListener("change", () => { servingsInput.value = getServings(); });
   }
-
-  // 0.25 oz used to display as "0.3"; round to 2 decimals and drop trailing zeros instead
   function formatAmount(value) {
     return String(parseFloat(value.toFixed(2)));
   }
 
-  // =========================================================================
-  // 2. THEME TOGGLE
-  // =========================================================================
+
+  //Theme toggle
   const themeToggleBtn = document.getElementById("theme-toggle");
   const savedTheme = store.get("theme") === "light" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
@@ -107,9 +97,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // =========================================================================
-  // 3. RESPONSIVE HAMBURGER NAVIGATION
-  // =========================================================================
+
+  //Responsive hamburger navigation
   const hamburger = document.getElementById("hamburger-btn");
   const navMenu = document.getElementById("nav-menu");
   if (hamburger && navMenu) {
@@ -121,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     hamburger.addEventListener("click", () => setMenu(!navMenu.classList.contains("active")));
     navMenu.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
-    // Close when tapping outside the menu, pressing Escape, or rotating to a wide screen
+
     document.addEventListener("click", (e) => {
       if (!navMenu.contains(e.target) && !hamburger.contains(e.target)) setMenu(false);
     });
@@ -129,9 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("resize", () => { if (window.innerWidth > 960) setMenu(false); });
   }
 
-  // =========================================================================
-  // 4. RECIPE DATABASES
-  // =========================================================================
+
   
   // Standard Cocktails (Home, Cabinet & Quiz)
   const recipeDatabase = [
@@ -344,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  // Low & Zero-ABV Database
+  //Low & Zero-ABV Database
   const lowAbvDatabase = [
     {
       id: 101,
@@ -490,7 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  // Minimalist (3-Ingredient) Database
+  //Minimalist (3-Ingredient) Database
   const minimalistDatabase = [
     {
       id: 201,
@@ -634,9 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (unitBtn) unitBtn.textContent = currentUnit.toUpperCase();
   }
 
-  // Find a drink by its unique id across all databases.
-  // (Old Fashioned, Negroni and Daiquiri exist in both the standard and 3-ingredient lists,
-  // so looking drinks up by name opened the wrong recipe from the 3-Ingredient page.)
+
   function findDrinkById(id) {
     const key = String(id);
     return recipeDatabase.find(d => String(d.id) === key) ||
@@ -644,12 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
            minimalistDatabase.find(d => String(d.id) === key);
   }
 
-  // =========================================================================
-  // FLOAT-IN REVEAL: cards fade and float up as they scroll into view
-  // =========================================================================
-  // Each grid remembers which drinks it has already revealed (grid._seen), so re-rendering
-  // for a favorite / unit / servings change never replays the animation. Cards that enter
-  // the screen together are staggered. Skipped entirely for reduced-motion users.
+  //Float-in reveal
   const prefersReducedMotion =
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -666,7 +646,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" })
     : null;
 
-  // Put cards into a grid and hook up the reveal animation
   function setGrid(container, html) {
     if (!container) return;
     const seen = container._seen || (container._seen = new Set());
@@ -677,24 +656,22 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML = html;
 
     const cards = container.querySelectorAll(".cocktail-card");
-    if (!cards.length) { seen.clear(); return; } // empty state: next results animate again
+    if (!cards.length) { seen.clear(); return; } 
 
     cards.forEach(card => {
       const id = card.getAttribute("data-drink-id");
       if (!revealObserver || seen.has(id)) {
-        card.classList.remove("reveal"); // already shown (or motion off): no replay
+        card.classList.remove("reveal"); 
       } else {
         revealObserver.observe(card);
       }
     });
   }
 
-  // Make the next render animate every card again (used when switching tabs / retaking the quiz)
   function resetReveals(container) {
     if (container && container._seen) container._seen.clear();
   }
 
-  // If a photo is missing, show a tidy placeholder instead of a broken-image icon
   document.addEventListener("error", (e) => {
     const img = e.target;
     if (img && img.classList && img.classList.contains("card-img")) {
@@ -708,9 +685,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, true);
 
-  // =========================================================================
-  // MODAL POPUP LOGIC
-  // =========================================================================
+
+  // Modal popup
   const modal = document.getElementById("recipe-modal");
   const modalCloseBtn = document.getElementById("modal-close-btn");
   let lastFocusedEl = null;
@@ -748,7 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lastFocusedEl = document.activeElement;
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden"; // stop the page scrolling behind the popup
+    document.body.style.overflow = "hidden"; 
     if (modalCloseBtn) modalCloseBtn.focus();
   }
 
@@ -769,7 +745,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Global Event Listener for Favorites, Shopping List & Recipe Card Clicks
+
   document.addEventListener("click", (e) => {
     const favBtn = e.target.closest(".fav-btn");
     if (favBtn) {
@@ -783,7 +759,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Recipe Card Click (Triggers Detail Modal)
     const card = e.target.closest(".cocktail-card");
     if (card) {
       const drinkObj = findDrinkById(card.getAttribute("data-drink-id"));
@@ -791,7 +766,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Keyboard: Escape closes the popup; Enter / Space opens a focused card
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal && modal.classList.contains("active")) {
       closeModal();
@@ -805,12 +779,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Card HTML Renderer Helper Function
+ 
   function renderCardHTML(cocktail, badgeHTML = "", extraButtonHTML = "") {
     const servings = getServings();
     const isFav = favorites.includes(cocktail.name);
 
-    // Fallback image if a drink doesn't have one assigned yet
     const imgSrc = cocktail.image || "images/default-cocktail.jpg";
 
     return `
@@ -849,9 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("quiz-recommendations-grid")) renderQuizRecommendations();
   }
 
-  // =========================================================================
-  // 5. LANDING PAGE GRID RENDERER (`index.html`)
-  // =========================================================================
+  //Landing page grid renderer 
   const homeGridContainer = document.getElementById("cocktail-grid");
   function renderHomeGrid() {
     if (!homeGridContainer) return;
@@ -864,9 +835,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (servingsInput) servingsInput.addEventListener("input", renderHomeGrid);
   }
 
-  // =========================================================================
-  // 6. CABINET REVERSE SEARCH ENGINE (`cabinet.html`)
-  // =========================================================================
+
+  //Cabinet reverse search engine
   const cabinetCategories = document.getElementById("cabinet-categories");
   const cabinetResultsGrid = document.getElementById("cabinet-results-grid");
   const resultsCountTitle = document.getElementById("results-count-title");
@@ -875,13 +845,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (cabinetCategories && cabinetResultsGrid) {
 
-    // Combine standard recipes and low-ABV recipes into one master search pool
+    
     const cabinetSearchPool = [...recipeDatabase, ...lowAbvDatabase];
 
     const categoriesMap = {};
     cabinetSearchPool.forEach(recipe => {
       recipe.ingredients.forEach(ing => {
-        // Fallback categorization if category isn't explicitly set on low-ABV ingredients
+        
         let cat = ing.category;
         if (!cat) {
           const lowerName = ing.name.toLowerCase();
@@ -937,8 +907,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const exactMatches = [];
       const partialMatches = [];
 
-      // Search standard AND low-ABV drinks (the sidebar lists ingredients from both;
-      // previously only the standard list was searched, so e.g. Lillet Blanc matched nothing)
+      
       cabinetSearchPool.forEach(recipe => {
         const missingIngs = recipe.ingredients.filter(
           ing => !checkedIngredients.includes(ing.name.toLowerCase())
@@ -987,7 +956,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const ingName = label.getAttribute("data-name").toLowerCase();
           label.style.display = ingName.includes(query) ? "flex" : "none";
         });
-        // Hide category headings that have no visible ingredients left
+      
         document.querySelectorAll(".category-group").forEach(group => {
           const anyVisible = Array.from(group.querySelectorAll(".checkbox-label"))
             .some(label => label.style.display !== "none");
@@ -1009,9 +978,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCabinetSidebar();
   }
 
-  // =========================================================================
-  // 7. LOW-ABV & ZERO-PROOF PAGE LOGIC (`low-abv.html`)
-  // =========================================================================
+
+  //Low-abv and zero-proof page logic
   const lowAbvGrid = document.getElementById("low-abv-grid");
   if (lowAbvGrid) {
     let activeFilter = "all";
@@ -1043,9 +1011,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLowAbvGrid();
   }
 
-  // =========================================================================
-  // 8. MINIMALIST 3-INGREDIENT PAGE LOGIC (`minimalist.html`)
-  // =========================================================================
+
+  //Minimalist 3-ingredient page logic 
   const minimalistGrid = document.getElementById("minimalist-grid");
   if (minimalistGrid) {
     let selectedSpirit = "all";
@@ -1077,9 +1044,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderMinimalistGrid();
   }
 
-  // =========================================================================
-  // 9. FLAVOR PROFILE QUIZ LOGIC (`quiz.html`)
-  // =========================================================================
+
+  //Flavor profile quiz logic
   const quizCard = document.getElementById("quiz-card");
   const quizResults = document.getElementById("quiz-results");
   const quizQuestionTitle = document.getElementById("quiz-question-title");
@@ -1141,7 +1107,6 @@ document.addEventListener("DOMContentLoaded", () => {
           const flavor = e.currentTarget.getAttribute("data-flavor");
           if (flavor) selectedFlavor = flavor;
 
-          // Lock the buttons so a fast double-tap can't skip a question
           quizOptionsGrid.querySelectorAll(".quiz-option-btn").forEach(b => { b.disabled = true; });
 
           currentStep++;
@@ -1185,19 +1150,15 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuestion();
   }
 
-  // =========================================================================
-  // 10. FOOTER & COOKIE BANNER LOGIC
-  // =========================================================================
-  // (This used to sit outside DOMContentLoaded, so it ran before the footer and banner
-  // existed on the page: the copyright year stayed empty and the cookie banner never showed.)
 
-  // Dynamic Copyright Year
+  //Footer and cookie banner logic
+
   const yearSpan = document.getElementById("copyright-year");
   if (yearSpan) {
     yearSpan.textContent = new Date().getFullYear();
   }
 
-  // Cookie Banner Logic
+
   const cookieBanner = document.getElementById("cookie-banner");
   const acceptCookiesBtn = document.getElementById("accept-cookies-btn");
 
