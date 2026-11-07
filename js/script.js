@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  //Global state, favorites and conversions
+  // 1. GLOBAL STATE, FAVORITES & CONVERSIONS
   let currentUnit = "ml"; // 'oz', 'ml', 'cl'
   const CONVERSIONS = { oz: 1, ml: 30, cl: 3 };
 
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = `Shopping List Item: ${ingredientName}`;
     let copied = false;
 
-
+   
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (e) { copied = false; }
 
+  
     if (!copied) {
       try {
         const ta = document.createElement("textarea");
@@ -68,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const unitBtn = document.getElementById("unit-toggle");
   const servingsInput = document.getElementById("servings-input");
 
+
   function getServings() {
     const n = parseFloat(servingsInput ? servingsInput.value : 1);
     if (!Number.isFinite(n)) return 1;
@@ -76,29 +78,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (servingsInput) {
     servingsInput.addEventListener("change", () => { servingsInput.value = getServings(); });
   }
+
+
   function formatAmount(value) {
     return String(parseFloat(value.toFixed(2)));
   }
 
 
-  //Theme toggle
+  // 2. THEME TOGGLE
   const themeToggleBtn = document.getElementById("theme-toggle");
   const savedTheme = store.get("theme") === "light" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   if (themeToggleBtn) {
-    themeToggleBtn.textContent = savedTheme === "dark" ? "Light" : "Dark";
+    themeToggleBtn.textContent = savedTheme === "dark" ? "☀️ Light" : "🌙 Dark";
     themeToggleBtn.addEventListener("click", () => {
       const currentTheme = document.documentElement.getAttribute("data-theme");
       const newTheme = currentTheme === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", newTheme);
       store.set("theme", newTheme);
-      themeToggleBtn.textContent = newTheme === "dark" ? "Light" : "Dark";
+      themeToggleBtn.textContent = newTheme === "dark" ? "☀️ Light" : "🌙 Dark";
     });
   }
 
 
-  //Responsive hamburger navigation
+  // 3. RESPONSIVE HAMBURGER NAVIGATION
   const hamburger = document.getElementById("hamburger-btn");
   const navMenu = document.getElementById("nav-menu");
   if (hamburger && navMenu) {
@@ -119,8 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  
-  // Standard Cocktails (Home, Cabinet & Quiz)
+  // 4. RECIPE DATABASES
   const recipeDatabase = [
     {
       id: 1,
@@ -331,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  //Low & Zero-ABV Database
+  // Low & Zero-ABV Database
   const lowAbvDatabase = [
     {
       id: 101,
@@ -477,7 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  //Minimalist (3-Ingredient) Database
+  // Minimalist (3-Ingredient) Database
   const minimalistDatabase = [
     {
       id: 201,
@@ -621,7 +624,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (unitBtn) unitBtn.textContent = currentUnit.toUpperCase();
   }
 
-
   function findDrinkById(id) {
     const key = String(id);
     return recipeDatabase.find(d => String(d.id) === key) ||
@@ -629,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
            minimalistDatabase.find(d => String(d.id) === key);
   }
 
-  //Float-in reveal
+  // FLOAT-IN REVEAL
   const prefersReducedMotion =
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -645,6 +647,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" })
     : null;
+
 
   function setGrid(container, html) {
     if (!container) return;
@@ -686,7 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, true);
 
 
-  // Modal popup
+  // MODAL POPUP LOGIC
   const modal = document.getElementById("recipe-modal");
   const modalCloseBtn = document.getElementById("modal-close-btn");
   let lastFocusedEl = null;
@@ -711,7 +714,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const ingList = document.getElementById("modal-ingredients");
     ingList.innerHTML = drink.ingredients.map(ing => {
       const val = ing.oz * CONVERSIONS[currentUnit] * servings;
-      return `<li><strong>${formatAmount(val)} ${currentUnit}</strong>” ${ing.name}</li>`;
+      return `<li><strong>${formatAmount(val)} ${currentUnit}</strong> — ${ing.name}</li>`;
     }).join("");
 
     const instList = document.getElementById("modal-instructions");
@@ -766,6 +769,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal && modal.classList.contains("active")) {
       closeModal();
@@ -779,7 +783,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
- 
+
   function renderCardHTML(cocktail, badgeHTML = "", extraButtonHTML = "") {
     const servings = getServings();
     const isFav = favorites.includes(cocktail.name);
@@ -793,11 +797,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="fav-btn" data-name="${cocktail.name}" title="Toggle Favorite"
                   aria-label="${isFav ? "Remove" : "Add"} ${cocktail.name} ${isFav ? "from" : "to"} favorites"
                   aria-pressed="${isFav}">
-            ${isFav ? "❤️" : "🤍"}
+            ${isFav ? "❤" : "🤍"}
           </button>
         </div>
         <div class="card-image-wrapper">
-          <img src="${imgSrc}" alt="${cocktail.altText || cocktail.name}" class="card-img" loading="lazy" />
+          <img src="${imgSrc}" alt="${(cocktail.altText || cocktail.name).replace(/^Image of /i, "")}" class="card-img" loading="lazy" />
         </div>
         <div class="card-content">
           <h3 class="card-title">${cocktail.name}</h3>
@@ -805,13 +809,53 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="card-ingredients">
             ${cocktail.ingredients.map(ing => {
               const val = ing.oz * CONVERSIONS[currentUnit] * servings;
-              return `<li><strong>${formatAmount(val)} ${currentUnit}</strong>” ${ing.name}</li>`;
+              return `<li><strong>${formatAmount(val)} ${currentUnit}</strong> — ${ing.name}</li>`;
             }).join("")}
           </ul>
           ${extraButtonHTML}
         </div>
       </article>
     `;
+  }
+
+
+  // SEO: RECIPE STRUCTURED DATA (JSON-LD)
+  function buildRecipeSchema(drink) {
+    const keywords = [
+      `${drink.name.toLowerCase()} recipe`,
+      `${drink.name.toLowerCase()} cocktail`,
+      "easy cocktail recipe"
+    ];
+    if (drink.type === "zero") keywords.push("mocktail", "zero proof cocktail", "non-alcoholic cocktail");
+    if (drink.type === "low") keywords.push("low alcohol cocktail", "low abv cocktail");
+    if (drink.baseSpirit) keywords.push("3 ingredient cocktail", `${drink.baseSpirit} cocktail`);
+    if (drink.flavorProfile) keywords.push(`${drink.flavorProfile} cocktail`);
+
+    return {
+      "@type": "Recipe",
+      "name": drink.name,
+      "description": `${drink.name}: ${drink.tagline.toLowerCase()}. Served in a ${drink.glass.toLowerCase()}, ${drink.method.toLowerCase()}.`,
+      "image": new URL(drink.image || "images/default-cocktail.jpg", document.baseURI).href,
+      "author": { "@type": "Organization", "name": "pour." },
+      "recipeCategory": "Cocktail",
+      "recipeYield": "1 serving",
+      "keywords": keywords.join(", "),
+      "recipeIngredient": drink.ingredients.map(ing =>
+        `${formatAmount(ing.oz * CONVERSIONS.ml)} ml (${formatAmount(ing.oz)} oz) ${ing.name}`),
+      "recipeInstructions": (drink.instructions || []).map(text => ({ "@type": "HowToStep", "text": text }))
+    };
+  }
+
+  function injectRecipeSchema(drinks) {
+    if (!drinks || !drinks.length) return;
+    let tag = document.getElementById("recipe-schema");
+    if (!tag) {
+      tag = document.createElement("script");
+      tag.type = "application/ld+json";
+      tag.id = "recipe-schema";
+      document.head.appendChild(tag);
+    }
+    tag.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": drinks.map(buildRecipeSchema) });
   }
 
   function renderActivePage() {
@@ -822,7 +866,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("quiz-recommendations-grid")) renderQuizRecommendations();
   }
 
-  //Landing page grid renderer 
+
+  // 5. LANDING PAGE GRID RENDERER ("index.html")
   const homeGridContainer = document.getElementById("cocktail-grid");
   function renderHomeGrid() {
     if (!homeGridContainer) return;
@@ -831,12 +876,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (homeGridContainer) {
     renderHomeGrid();
+    injectRecipeSchema(recipeDatabase);
     if (unitBtn) unitBtn.addEventListener("click", () => { toggleUnit(); renderHomeGrid(); });
     if (servingsInput) servingsInput.addEventListener("input", renderHomeGrid);
   }
 
 
-  //Cabinet reverse search engine
+  // 6. CABINET REVERSE SEARCH ENGINE ("cabinet.html")
   const cabinetCategories = document.getElementById("cabinet-categories");
   const cabinetResultsGrid = document.getElementById("cabinet-results-grid");
   const resultsCountTitle = document.getElementById("results-count-title");
@@ -845,13 +891,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (cabinetCategories && cabinetResultsGrid) {
 
-    
     const cabinetSearchPool = [...recipeDatabase, ...lowAbvDatabase];
 
     const categoriesMap = {};
     cabinetSearchPool.forEach(recipe => {
       recipe.ingredients.forEach(ing => {
-        
+    
         let cat = ing.category;
         if (!cat) {
           const lowerName = ing.name.toLowerCase();
@@ -898,7 +943,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsCountTitle.textContent = "Select ingredients to start searching";
         setGrid(cabinetResultsGrid, `
           <div class="no-results-card card">
-            <p>Check off ingredients in the sidebar to see cocktails you can make!</p>
+            <p>👈 Check off ingredients in the sidebar to see cocktails you can make!</p>
           </div>
         `);
         return;
@@ -907,7 +952,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const exactMatches = [];
       const partialMatches = [];
 
-      
       cabinetSearchPool.forEach(recipe => {
         const missingIngs = recipe.ingredients.filter(
           ing => !checkedIngredients.includes(ing.name.toLowerCase())
@@ -921,7 +965,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const totalFound = exactMatches.length + partialMatches.length;
-      resultsCountTitle.textContent = `Found ${exactMatches.length} Ready to Mix ${partialMatches.length} Almost There`;
+      resultsCountTitle.textContent = `Found ${exactMatches.length} Ready to Mix • ${partialMatches.length} Almost There`;
 
       if (totalFound === 0) {
         setGrid(cabinetResultsGrid, `
@@ -942,7 +986,7 @@ document.addEventListener("DOMContentLoaded", () => {
         htmlOutput += renderCardHTML(
           cocktail, 
           `<span class="match-badge partial">Missing: ${cocktail.missing}</span>`,
-          `<button class="btn-shopping" data-missing="${cocktail.missing}"> Add ${cocktail.missing} to Shopping List</button>`
+          `<button class="btn-shopping" data-missing="${cocktail.missing}">📋 Add ${cocktail.missing} to Shopping List</button>`
         );
       });
 
@@ -956,7 +1000,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const ingName = label.getAttribute("data-name").toLowerCase();
           label.style.display = ingName.includes(query) ? "flex" : "none";
         });
-      
+        
         document.querySelectorAll(".category-group").forEach(group => {
           const anyVisible = Array.from(group.querySelectorAll(".checkbox-label"))
             .some(label => label.style.display !== "none");
@@ -978,8 +1022,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCabinetSidebar();
   }
 
-
-  //Low-abv and zero-proof page logic
+  // 7. LOW-ABV & ZERO-PROOF PAGE LOGIC ("low-abv.html")
   const lowAbvGrid = document.getElementById("low-abv-grid");
   if (lowAbvGrid) {
     let activeFilter = "all";
@@ -1009,10 +1052,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (servingsInput) servingsInput.addEventListener("input", renderLowAbvGrid);
 
     renderLowAbvGrid();
+    injectRecipeSchema(lowAbvDatabase);
   }
 
-
-  //Minimalist 3-ingredient page logic 
+  // 8. MINIMALIST 3-INGREDIENT PAGE LOGIC ("minimalist.html")
   const minimalistGrid = document.getElementById("minimalist-grid");
   if (minimalistGrid) {
     let selectedSpirit = "all";
@@ -1042,10 +1085,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (servingsInput) servingsInput.addEventListener("input", renderMinimalistGrid);
 
     renderMinimalistGrid();
+    injectRecipeSchema(minimalistDatabase);
   }
 
-
-  //Flavor profile quiz logic
+  // 9. FLAVOR PROFILE QUIZ LOGIC ("quiz.html")
   const quizCard = document.getElementById("quiz-card");
   const quizResults = document.getElementById("quiz-results");
   const quizQuestionTitle = document.getElementById("quiz-question-title");
@@ -1063,28 +1106,28 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         question: "What primary flavor profile are you craving today?",
         options: [
-          { label: "Sour & Citrusy", sub: "Tart, vibrant, refreshing", flavor: "sour" },
-          { label: "Spirit-Forward", sub: "Bold, strong, boozy", flavor: "strong" },
-          { label: "Sweet & Decadent", sub: "Rich, smooth, dessert-like", flavor: "sweet" },
-          { label: "Bitter & Complex", sub: "Herbal, aperitivo style", flavor: "bitter" }
+          { label: "Sour & Citrusy 🍋", sub: "Tart, vibrant, refreshing", flavor: "sour" },
+          { label: "Spirit-Forward 🥃", sub: "Bold, strong, boozy", flavor: "strong" },
+          { label: "Sweet & Decadent ☕", sub: "Rich, smooth, dessert-like", flavor: "sweet" },
+          { label: "Bitter & Complex 🌿", sub: "Herbal, aperitivo style", flavor: "bitter" }
         ]
       },
       {
         question: "What kind of occasion is this drink for?",
         options: [
-          { label: "Unwinding after work", sub: "Slow sipping", flavor: null },
-          { label: "Party / Weekend Vibes", sub: "Crowd pleaser", flavor: null },
-          { label: "Dinner pairing", sub: "Balanced taste", flavor: null },
-          { label: "Late night nightcap", sub: "Deep and warming", flavor: null }
+          { label: "Unwinding after work 🌇", sub: "Slow sipping", flavor: null },
+          { label: "Party / Weekend Vibes 🎉", sub: "Crowd pleaser", flavor: null },
+          { label: "Dinner pairing 🍽️", sub: "Balanced taste", flavor: null },
+          { label: "Late night nightcap 🌙", sub: "Deep and warming", flavor: null }
         ]
       },
       {
         question: "How do you like your drink served?",
         options: [
-          { label: "On the Rocks", sub: "Over ice", flavor: null },
-          { label: "Chilled & Up", sub: "Coupe or martini glass", flavor: null },
-          { label: "Tall with Soda", sub: "Highball style", flavor: null },
-          { label: "Neat / Room Temp", sub: "No ice", flavor: null }
+          { label: "On the Rocks 🧊", sub: "Over ice", flavor: null },
+          { label: "Chilled & Up 🍸", sub: "Coupe or martini glass", flavor: null },
+          { label: "Tall with Soda 🥤", sub: "Highball style", flavor: null },
+          { label: "Neat / Room Temp 🥃", sub: "No ice", flavor: null }
         ]
       }
     ];
@@ -1107,6 +1150,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const flavor = e.currentTarget.getAttribute("data-flavor");
           if (flavor) selectedFlavor = flavor;
 
+         
           quizOptionsGrid.querySelectorAll(".quiz-option-btn").forEach(b => { b.disabled = true; });
 
           currentStep++;
@@ -1151,14 +1195,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  //Footer and cookie banner logic
-
+  // 10. FOOTER & COOKIE BANNER LOGIC
+  // Dynamic Copyright Year
   const yearSpan = document.getElementById("copyright-year");
   if (yearSpan) {
     yearSpan.textContent = new Date().getFullYear();
   }
 
-
+  // Cookie Banner Logic
   const cookieBanner = document.getElementById("cookie-banner");
   const acceptCookiesBtn = document.getElementById("accept-cookies-btn");
 

@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>pour. | Top 9 Popular Cocktails</title>
+  <meta name="description" content="Browse the most popular cocktail recipes, from Margarita and Old Fashioned to Espresso Martini. Scale servings and convert ml, cl and oz.">
+  <meta name="keywords" content="cocktail recipes, easy cocktail recipes, classic cocktails, cocktails at home, home bar, margarita recipe, old fashioned recipe, espresso martini recipe, mojito recipe, whiskey sour recipe, negroni recipe, daiquiri recipe, aperol spritz recipe, dry martini recipe">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:title" content="Easy Cocktail Recipes: Margarita, Mojito and More | pour.">
+  <meta property="og:description" content="Browse the most popular cocktail recipes, from Margarita and Old Fashioned to Espresso Martini. Scale servings and convert ml, cl and oz.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="pour.">
+  <title>Easy Cocktail Recipes: Margarita, Mojito and More | pour.</title>
   <link rel="stylesheet" href="./css/reset.css">
   <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -14,7 +21,7 @@
     <nav class="navbar">
       <a href="index.html" class="logo">pour.</a>
       <div class="nav-controls">
-        <button id="theme-toggle" class="theme-btn">Light</button>
+        <button id="theme-toggle" class="theme-btn">☀️ Light</button>
         <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
           <span class="bar"></span>
           <span class="bar"></span>
@@ -37,7 +44,7 @@
     <p>Explore classic drinks, scale batch sizes, and convert units on the fly.</p>
   </section>
 
-  <!-- Global Recipe Controls -->
+  <!-- Global Recipe Controls (Controls all 9 cards simultaneously) -->
   <div class="container">
     <div class="controls-bar">
       <div class="control-group">
@@ -54,11 +61,11 @@
 
     <!-- 3x3 Grid (9 Cocktails Rendered via JS) -->
     <main id="cocktail-grid" class="cocktail-grid">
-    
+      <!-- 9 Recipe cards will be inserted here dynamically -->
     </main>
   </div>
 
-  
+  <script src="./js/script.js"></script>
   <!-- Recipe Details Modal -->
   <div id="recipe-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal-content">
@@ -81,7 +88,7 @@
     </div>
   </div>
 
-  <!-- Footer Global -->
+  <!-- GLOBAL FOOTER -->
 <footer class="site-footer">
   <div class="footer-container">
     <div class="footer-brand">
@@ -103,13 +110,12 @@
   </div>
 </footer>
 
-<!-- Cookies Banner -->
+<!-- COOKIE BANNER -->
 <div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
   <div class="cookie-content">
     <p>We use local storage to save your favorited drinks and settings. No tracking cookies here.</p>
     <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
   </div>
 </div>
-<script src="./js/script.js"></script>
 </body>
 </html>
