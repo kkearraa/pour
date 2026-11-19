@@ -11,6 +11,9 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="pour.">
   <title>Easy Cocktail Recipes: Margarita, Mojito and More | pour.</title>
+  <link rel="icon" href="./images/logo/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="./images/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="./images/logo/apple-touch-icon.png">
   <link rel="stylesheet" href="./css/reset.css">
   <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -19,7 +22,10 @@
   <!-- Navigation Bar -->
   <header>
     <nav class="navbar">
-      <a href="index.html" class="logo">pour.</a>
+      <a href="index.html" class="logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="logo-img logo-img--dark-theme">
+        <img src="./images/logo/pour-logo-on-light.svg" alt="pour." class="logo-img logo-img--light-theme">
+      </a>
       <div class="nav-controls">
         <button id="theme-toggle" class="theme-btn">☀️ Light</button>
         <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
@@ -92,7 +98,9 @@
 <footer class="site-footer">
   <div class="footer-container">
     <div class="footer-brand">
-      <a href="index.html" class="footer-logo">pour.</a>
+      <a href="index.html" class="footer-logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="footer-logo-img">
+      </a>
       <p class="footer-tagline">Curated drinks, modern mixology.</p>
     </div>
     
