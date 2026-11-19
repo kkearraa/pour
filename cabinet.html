@@ -3,23 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>/* Set the theme before the page is drawn (no dark flash) */
+  (function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <title>Cocktails With Ingredients You Have at Home | pour.</title>
   <meta name="description" content="Tick the spirits, juices and syrups in your home bar and instantly see which cocktails you can make, and what is missing for the rest.">
   <meta name="keywords" content="cocktails with ingredients I have, cocktail recipes by ingredient, what can I make with what I have, cocktail finder, home bar ingredients, cabinet cocktail search, cocktail shopping list">
   <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://kkearraa.github.io/pour/cabinet.html">
+  
+  <!-- Social share preview (Facebook, Messenger, LinkedIn, Discord, X...) -->
   <meta property="og:title" content="Cocktails With Ingredients You Have at Home | pour.">
   <meta property="og:description" content="Tick the spirits, juices and syrups in your home bar and instantly see which cocktails you can make, and what is missing for the rest.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="pour.">
-  <title>Cocktails With Ingredients You Have at Home | pour.</title>
-  <link rel="stylesheet" href="./css/reset.css">
-  <link rel="stylesheet" href="./css/style.css">
+  <meta property="og:url" content="https://kkearraa.github.io/pour/cabinet.html">
+  <meta property="og:image" content="https://kkearraa.github.io/pour/images/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="pour. logo next to a Negroni cocktail, with the text: Cocktail recipes for your home bar">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./images/logo/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="./images/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="./images/logo/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/style.min.css">
+  <script src="./js/script.min.js" defer></script>
 </head>
 <body>
 
   <!-- Navigation Bar -->
   <header>
     <nav class="navbar">
-      <a href="index.html" class="logo">pour.</a>
+      <a href="index.html" class="logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="logo-img logo-img--dark-theme">
+        <img src="./images/logo/pour-logo-on-light.svg" alt="pour." class="logo-img logo-img--light-theme">
+      </a>
       <div class="nav-controls">
         <button id="theme-toggle" class="theme-btn">☀️ Light</button>
         <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
@@ -42,6 +59,7 @@
   <section class="hero">
     <h1>What's in My Cabinet?</h1>
     <p>Check off the spirits, juices, and syrups you have on hand to discover what you can mix right now.</p>
+    <p class="hero-links">Can't decide? <a href="quiz.html">Let the Flavor Quiz pick for you</a></p>
   </section>
 
   <main class="container cabinet-layout">
@@ -93,8 +111,6 @@
     </section>
 
   </main>
-
-  <script src="./js/script.js"></script>
   <!-- Recipe Details Modal -->
   <div id="recipe-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal-content">
@@ -117,24 +133,45 @@
     </div>
   </div>
 
+  <!-- EXPLORE MORE (internal links to the other pages) -->
+  <section class="explore-more" aria-labelledby="explore-title">
+    <h2 id="explore-title">Explore more</h2>
+    <div class="explore-grid">
+      <a href="index.html" class="explore-card"><strong>Popular cocktails</strong><span>Margarita, Mojito, Negroni and other classics, with servings and unit converter.</span></a>
+      <a href="low-abv.html" class="explore-card"><strong>Low-alcohol & zero-proof</strong><span>Mocktails and light drinks with full flavor and little or no alcohol.</span></a>
+      <a href="minimalist.html" class="explore-card"><strong>3-ingredient cocktails</strong><span>Great drinks that need only three bottles.</span></a>
+      <a href="quiz.html" class="explore-card"><strong>Flavor quiz</strong><span>Answer three quick questions and get a cocktail picked for you.</span></a>
+    </div>
+  </section>
+
   <!-- GLOBAL FOOTER -->
 <footer class="site-footer">
   <div class="footer-container">
     <div class="footer-brand">
-      <a href="index.html" class="footer-logo">pour.</a>
+      <a href="index.html" class="footer-logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="footer-logo-img">
+      </a>
       <p class="footer-tagline">Curated drinks, modern mixology.</p>
     </div>
-    
+
     <div class="footer-links">
       <a href="index.html">Home</a>
       <a href="cabinet.html">Cabinet</a>
-      <a href="low-abv.html">Low & Zero-ABV</a>
+      <a href="low-abv.html">Low &amp; Zero-ABV</a>
       <a href="minimalist.html">3-Ingredient</a>
       <a href="quiz.html">Quiz</a>
     </div>
 
+    <div class="footer-legal">
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+
+    <p class="footer-responsible">Please drink responsibly. pour. is meant for adults of legal drinking age. Want to cut down? <a href="https://www.drinkaware.co.uk/" target="_blank" rel="noopener">Drinkaware</a> has free advice.</p>
+
     <div class="footer-copy">
-      <p>&copy; <span id="copyright-year"></span> pour. All rights reserved.</p>
+      <p>&copy; <span id="copyright-year"></span> pour. by Kira Pugachova. All rights reserved.</p>
     </div>
   </div>
 </footer>
@@ -142,7 +179,7 @@
 <!-- COOKIE BANNER -->
 <div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
   <div class="cookie-content">
-    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here.</p>
+    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
     <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
   </div>
 </div>

@@ -86,8 +86,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // 2. THEME TOGGLE
+  // The small script in each page's <head> already set the theme before the page was
+  // drawn (so there is no dark flash). This repeats the same choice: the saved theme,
+  // or on a first visit the device's own light/dark setting.
   const themeToggleBtn = document.getElementById("theme-toggle");
-  const savedTheme = store.get("theme") === "light" ? "light" : "dark";
+  const storedTheme = store.get("theme");
+  const systemPrefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  const savedTheme = (storedTheme === "light" || storedTheme === "dark")
+    ? storedTheme
+    : (systemPrefersLight ? "light" : "dark");
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   if (themeToggleBtn) {
@@ -129,13 +136,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 1,
       name: "Margarita",
       tagline: "Crisp & Citrusy",
-      image: "images/Classic Margarita with salt rim.jpg",
+      image: "images/margarita.webp",
       flavorProfile: "sour",
       glass: "Rocks Glass",
       method: "Shaken",
       garnish: "Salt rim & lime wheel",
       ice: "Cubed ice",
-      altText: "Image of Classic Margarita with salt rim",
+      altText: "Margarita in a salt-rimmed coupe glass with a lime wedge, on a wooden table",
       ingredients: [
         { name: "tequila", oz: 2, category: "Spirits" },
         { name: "lime juice", oz: 1, category: "Juices & Mixers" },
@@ -152,13 +159,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 2,
       name: "Old Fashioned",
       tagline: "Bold & Timeless",
-      image: "images/Old Fashioned with orange peel.webp",
+      image: "images/old-fashioned.webp",
       flavorProfile: "strong",
       glass: "Rocks Glass",
       method: "Stirred",
       garnish: "Orange peel",
       ice: "Large single cube",
-      altText: "Image of Old Fashioned with orange peel",
+      altText: "Old Fashioned on ice in a rocks glass with an orange peel twist",
       ingredients: [
         { name: "bourbon", oz: 2, category: "Spirits" },
         { name: "simple syrup", oz: 0.25, category: "Syrups & Sweeteners" },
@@ -175,13 +182,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 3,
       name: "Espresso Martini",
       tagline: "Rich & Energizing",
-      image: "images/Espresso Martini with coffee beans.webp",
+      image: "images/espresso-martini.webp",
       flavorProfile: "sweet",
       glass: "Coupe Glass",
       method: "Shaken",
       garnish: "3 Espresso beans",
       ice: "None (Chilled)",
-      altText: "Image of Espresso Martini with coffee beans",
+      altText: "Espresso Martini with a creamy foam top and coffee beans, in a coupe glass",
       ingredients: [
         { name: "vodka", oz: 2, category: "Spirits" },
         { name: "coffee liqueur", oz: 1, category: "Spirits" },
@@ -198,13 +205,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 4,
       name: "Mojito",
       tagline: "Refreshing & Minty",
-      image: "images/Image of Mojito with crushed ice and mint leaves.jpg",
+      image: "images/mojito.webp",
       flavorProfile: "refreshing",
       glass: "Highball Glass",
       method: "Muddled & Built",
       garnish: "Fresh mint sprig",
       ice: "Crushed ice",
-      altText: "Image of Mojito with crushed ice and mint leaves",
+      altText: "Mojito in a tall glass with crushed ice, fresh mint, lime wheels and straws",
       ingredients: [
         { name: "white rum", oz: 2, category: "Spirits" },
         { name: "lime juice", oz: 1, category: "Juices & Mixers" },
@@ -223,13 +230,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 5,
       name: "Whiskey Sour",
       tagline: "Smooth & Tart",
-      image: "images/Image of Whiskey Sour with lemon wheel.jpg",
+      image: "images/whiskey-sour.webp",
       flavorProfile: "sour",
       glass: "Rocks Glass",
       method: "Shaken",
       garnish: "Lemon wheel & Angostura drops",
       ice: "Cubed ice",
-      altText: "Image of Whiskey Sour with lemon wheel",
+      altText: "Frothy Whiskey Sour on ice, garnished with an orange slice and a cherry",
       ingredients: [
         { name: "bourbon", oz: 2, category: "Spirits" },
         { name: "lemon juice", oz: 0.75, category: "Juices & Mixers" },
@@ -246,13 +253,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 6,
       name: "Negroni",
       tagline: "Bittersweet & Herbal",
-      image: "images/Image of Negroni over large ice cube.png",
+      image: "images/negroni.webp",
       flavorProfile: "bitter",
       glass: "Rocks Glass",
       method: "Stirred",
       garnish: "Orange slice",
       ice: "Large single cube",
-      altText: "Image of Negroni over large ice cube",
+      altText: "Deep red Negroni over a large ice cube with an orange peel garnish",
       ingredients: [
         { name: "gin", oz: 1, category: "Spirits" },
         { name: "campari", oz: 1, category: "Spirits" },
@@ -269,13 +276,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 7,
       name: "Daiquiri",
       tagline: "Simple & Elegant",
-      image: "images/Image of Classic Rum Daiquiri in coupe glass.jpg",
+      image: "images/daiquiri.webp",
       flavorProfile: "sour",
       glass: "Coupe Glass",
       method: "Shaken",
       garnish: "Lime wheel",
       ice: "None (Chilled)",
-      altText: "Image of Classic Rum Daiquiri in coupe glass",
+      altText: "Pale Daiquiri in a coupe glass with a lime wheel, fresh limes beside it",
       ingredients: [
         { name: "white rum", oz: 2, category: "Spirits" },
         { name: "lime juice", oz: 1, category: "Juices & Mixers" },
@@ -291,13 +298,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 8,
       name: "Aperol Spritz",
       tagline: "Light & Effervescent",
-      image: "images/Image of Aperol Spritz with orange slice.jpg",
+      image: "images/aperol-spritz.webp",
       flavorProfile: "refreshing",
       glass: "Wine Glass",
       method: "Built in glass",
       garnish: "Orange slice",
       ice: "Cubed ice",
-      altText: "Image of Aperol Spritz with orange slice",
+      altText: "Bright orange Aperol Spritz with ice and an orange slice in a wine glass",
       ingredients: [
         { name: "prosecco", oz: 3, category: "Spirits" },
         { name: "aperol", oz: 2, category: "Spirits" },
@@ -314,13 +321,13 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 9,
       name: "Dry Martini",
       tagline: "Clean & Sophisticated",
-      image: "images/Image of Dry Martini with olive garnish.jpg",
+      image: "images/dry-martini.webp",
       flavorProfile: "strong",
       glass: "Martini Glass",
       method: "Stirred",
       garnish: "Green olive or lemon twist",
       ice: "None (Chilled)",
-      altText: "Image of Dry Martini with olive garnish",
+      altText: "Dry Martini in a classic cocktail glass with green olives on a pick",
       ingredients: [
         { name: "gin", oz: 2.5, category: "Spirits" },
         { name: "dry vermouth", oz: 0.5, category: "Spirits" }
@@ -340,14 +347,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 101,
       name: "Zero-Proof Paloma",
       tagline: "Tart & Fizzy",
-      image: "images/Image of Pink Grapefruit Paloma with salt rim.jpeg",
+      image: "images/paloma-zero-proof.webp",
       type: "zero",
       abvText: "0% ABV",
       glass: "Highball Glass",
       method: "Built in glass",
       garnish: "Grapefruit wedge & salt rim",
       ice: "Cubed ice",
-      altText: "Image of Pink Grapefruit Paloma with salt rim",
+      altText: "Pink grapefruit Paloma with a salt rim, crushed ice and a grapefruit wedge",
       ingredients: [
         { name: "fresh grapefruit juice", oz: 2 },
         { name: "fresh lime juice", oz: 0.5 },
@@ -364,14 +371,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 102,
       name: "Americano",
       tagline: "Classic Italian Aperitivo",
-      image: "images/Image of Americano cocktail with orange wedge.jpg",
+      image: "images/americano.webp",
       type: "low",
       abvText: "~8% ABV",
       glass: "Highball Glass",
       method: "Built in glass",
       garnish: "Orange wedge",
       ice: "Cubed ice",
-      altText: "Image of Americano cocktail with orange wedge",
+      altText: "Red Americano on ice with orange slices, next to a bottle of Campari",
       ingredients: [
         { name: "campari", oz: 1.5 },
         { name: "sweet vermouth", oz: 1.5 },
@@ -387,14 +394,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 103,
       name: "Virgin Mojito",
       tagline: "Crisp & Herbaceous",
-      image: "images/Image of Virgin Mojito with fresh mint and lime slices.jpg",
+      image: "images/virgin-mojito.webp",
       type: "zero",
       abvText: "0% ABV",
       glass: "Highball Glass",
       method: "Muddled",
       garnish: "Mint sprig & lime wheel",
       ice: "Crushed ice",
-      altText: "Image of Virgin Mojito with fresh mint and lime slices",
+      altText: "Virgin Mojito with ice, a mint sprig and a lime slice, fresh limes around it",
       ingredients: [
         { name: "fresh lime juice", oz: 1 },
         { name: "simple syrup", oz: 0.75 },
@@ -412,14 +419,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 104,
       name: "Lillet Highball",
       tagline: "Light, Floral & Refreshing",
-      image: "images/Image of Lillet Highball with cucumber and mint garnish.webp",
+      image: "images/lillet-highball.webp",
       type: "low",
       abvText: "~5% ABV",
       glass: "Highball Glass",
       method: "Built in glass",
       garnish: "Cucumber ribbon & mint",
       ice: "Cubed ice",
-      altText: "Image of Lillet Highball with cucumber and mint garnish",
+      altText: "Pale green Lillet Highball in a tall glass with cucumber slices and mint",
       ingredients: [
         { name: "lillet blanc", oz: 2 },
         { name: "tonic water", oz: 4 },
@@ -435,14 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 105,
       name: "Cucumber Ginger Fizz",
       tagline: "Zesty & Botanical",
-      image: "images/Image of Cucumber Ginger Fizz in tall glass.png",
+      image: "images/cucumber-ginger-fizz.webp",
       type: "zero",
       abvText: "0% ABV",
       glass: "Highball Glass",
       method: "Muddled & Built",
       garnish: "Cucumber slice",
       ice: "Cubed ice",
-      altText: "Image of Cucumber Ginger Fizz in tall glass",
+      altText: "Cucumber Ginger Fizz in a tall cut-crystal glass with cucumber and lime, on a bar",
       ingredients: [
         { name: "muddled cucumber", oz: 1 },
         { name: "fresh lime juice", oz: 0.75 },
@@ -458,14 +465,14 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 106,
       name: "Sherry Cobbler",
       tagline: "Fruity & Nutty Classic",
-      image: "images/Image of Sherry Cobbler heaped with crushed ice and berries.jpg",
+      image: "images/sherry-cobbler.webp",
       type: "low",
       abvText: "~9% ABV",
       glass: "Rocks Glass",
       method: "Shaken",
       garnish: "Fresh berries & mint",
       ice: "Crushed ice",
-      altText: "Image of Sherry Cobbler heaped with crushed ice and berries",
+      altText: "Sherry Cobbler over crushed ice, topped with berries, orange and mint",
       ingredients: [
         { name: "fino sherry", oz: 3 },
         { name: "simple syrup", oz: 0.5 },
@@ -487,12 +494,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Negroni",
       baseSpirit: "gin",
       tagline: "Bittersweet Perfection",
-      image: "images/Image of Negroni over large ice cube.png",
+      image: "images/negroni.webp",
       glass: "Rocks Glass",
       method: "Stirred",
       garnish: "Orange peel",
       ice: "Large ice cube",
-      altText: "Image of Negroni over large ice cube",
+      altText: "Deep red Negroni over a large ice cube with an orange peel garnish",
       ingredients: [
         { name: "gin", oz: 1 },
         { name: "campari", oz: 1 },
@@ -509,12 +516,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Old Fashioned",
       baseSpirit: "bourbon",
       tagline: "Whiskey Classic",
-      image: "images/Old Fashioned with orange peel.webp",
+      image: "images/old-fashioned.webp",
       glass: "Rocks Glass",
       method: "Stirred",
       garnish: "Orange peel",
       ice: "Large single cube",
-      altText: "Image of Old Fashioned with orange peel",
+      altText: "Old Fashioned on ice in a rocks glass with an orange peel twist",
       ingredients: [
         { name: "bourbon", oz: 2 },
         { name: "simple syrup", oz: 0.25 },
@@ -531,12 +538,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Daiquiri",
       baseSpirit: "rum",
       tagline: "Rum, Lime & Sweetness",
-      image: "images/Image of Classic Rum Daiquiri in coupe glass.jpg",
+      image: "images/daiquiri.webp",
       glass: "Coupe Glass",
       method: "Shaken",
       garnish: "Lime wheel",
       ice: "None (Chilled)",
-      altText: "Image of Classic Rum Daiquiri in coupe glass",
+      altText: "Pale Daiquiri in a coupe glass with a lime wheel, fresh limes beside it",
       ingredients: [
         { name: "white rum", oz: 2 },
         { name: "lime juice", oz: 1 },
@@ -553,12 +560,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Tommy's Margarita",
       baseSpirit: "tequila",
       tagline: "Pure Agave & Lime",
-      image: "images/Image of Tommy's Margarita on the rocks.jpg",
+      image: "images/tommys-margarita.webp",
       glass: "Rocks Glass",
       method: "Shaken",
       garnish: "Lime wheel",
       ice: "Cubed ice",
-      altText: "Image of Tommy's Margarita on the rocks",
+      altText: "Tommy's Margarita on the rocks in a salt-rimmed glass with a lime wheel",
       ingredients: [
         { name: "reposado tequila", oz: 2 },
         { name: "fresh lime juice", oz: 1 },
@@ -575,12 +582,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Moscow Mule",
       baseSpirit: "vodka",
       tagline: "Spicy & Crisp",
-      image: "images/Image of Moscow Mule in copper mug with lime wedge.jpg",
+      image: "images/moscow-mule.webp",
       glass: "Copper Mug",
       method: "Built in mug",
       garnish: "Lime wedge",
       ice: "Cubed ice",
-      altText: "Image of Moscow Mule in copper mug with lime wedge",
+      altText: "Moscow Mule in a copper mug with ice and lime wedges",
       ingredients: [
         { name: "vodka", oz: 2 },
         { name: "lime juice", oz: 0.5 },
@@ -597,12 +604,12 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Gimlet",
       baseSpirit: "gin",
       tagline: "Sharp & Citrus-Forward",
-      image: "images/Image of Gin Gimlet served cold in a cocktail glass.jpg",
+      image: "images/gimlet.webp",
       glass: "Coupe Glass",
       method: "Shaken",
       garnish: "Lime wheel",
       ice: "None (Chilled)",
-      altText: "Image of Gin Gimlet served cold in a cocktail glass",
+      altText: "Gin Gimlet in a coupe glass with a lime wheel on the rim",
       ingredients: [
         { name: "gin", oz: 2 },
         { name: "lime juice", oz: 0.75 },
@@ -631,6 +638,59 @@ document.addEventListener("DOMContentLoaded", () => {
            minimalistDatabase.find(d => String(d.id) === key);
   }
 
+  // WHICH PAGE EACH DRINK LIVES ON (used for "Also try" links)
+  function pageForDrink(drink) {
+    if (recipeDatabase.includes(drink)) return "index.html";
+    if (lowAbvDatabase.includes(drink)) return "low-abv.html";
+    return "minimalist.html";
+  }
+
+  // "ALSO TRY" SUGGESTIONS: drink id -> ids of related drinks (they can be on other pages)
+  const RELATED_DRINKS = {
+    1: [204, 7],      // Margarita -> Tommy's Margarita, Daiquiri
+    2: [5, 6],        // Old Fashioned -> Whiskey Sour, Negroni
+    3: [9, 2],        // Espresso Martini -> Dry Martini, Old Fashioned
+    4: [103, 7],      // Mojito -> Virgin Mojito, Daiquiri
+    5: [2, 1],        // Whiskey Sour -> Old Fashioned, Margarita
+    6: [102, 8],      // Negroni -> Americano, Aperol Spritz
+    7: [4, 206],      // Daiquiri -> Mojito, Gimlet
+    8: [102, 104],    // Aperol Spritz -> Americano, Lillet Highball
+    9: [206, 3],      // Dry Martini -> Gimlet, Espresso Martini
+    101: [1, 103],    // Zero-Proof Paloma -> Margarita, Virgin Mojito
+    102: [6, 8],      // Americano -> Negroni, Aperol Spritz
+    103: [4, 105],    // Virgin Mojito -> Mojito, Cucumber Ginger Fizz
+    104: [8, 105],    // Lillet Highball -> Aperol Spritz, Cucumber Ginger Fizz
+    105: [205, 103],  // Cucumber Ginger Fizz -> Moscow Mule, Virgin Mojito
+    106: [102, 8],    // Sherry Cobbler -> Americano, Aperol Spritz
+    201: [102, 8],    // Negroni (3-ingredient) -> Americano, Aperol Spritz
+    202: [5, 6],      // Old Fashioned (3-ingredient) -> Whiskey Sour, Negroni
+    203: [4, 206],    // Daiquiri (3-ingredient) -> Mojito, Gimlet
+    204: [1, 101],    // Tommy's Margarita -> Margarita, Zero-Proof Paloma
+    205: [105, 4],    // Moscow Mule -> Cucumber Ginger Fizz, Mojito
+    206: [7, 9]       // Gimlet -> Daiquiri, Dry Martini
+  };
+
+  // OFFICIAL RECIPES from the International Bartenders Association (external, credible source)
+  const IBA = "https://iba-world.com/iba-cocktail/";
+  const IBA_LINKS = {
+    "Margarita": { url: IBA + "margarita/" },
+    "Old Fashioned": { url: IBA + "old-fashioned/" },
+    "Espresso Martini": { url: IBA + "espresso-martini/" },
+    "Mojito": { url: IBA + "mojito/" },
+    "Whiskey Sour": { url: IBA + "whiskey-sour/" },
+    "Negroni": { url: IBA + "negroni/" },
+    "Daiquiri": { url: IBA + "daiquiri/" },
+    "Aperol Spritz": { url: IBA + "spritz/" },
+    "Dry Martini": { url: IBA + "dry-martini/" },
+    "Americano": { url: IBA + "americano/" },
+    "Sherry Cobbler": { url: IBA + "sherry-cobbler/" },
+    "Tommy's Margarita": { url: IBA + "tommys-margarita/" },
+    "Moscow Mule": { url: IBA + "moscow-mule/" },
+    // Alcohol-free versions link to the classic they are based on
+    "Zero-Proof Paloma": { url: IBA + "paloma/", label: "Classic Paloma recipe (IBA)" },
+    "Virgin Mojito": { url: IBA + "mojito/", label: "Classic Mojito recipe (IBA)" }
+  };
+
   // FLOAT-IN REVEAL
   const prefersReducedMotion =
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -658,6 +718,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     container.innerHTML = html;
 
+    // The grid now has its cards, so it no longer needs the reserved space (see style.css)
+    const firstRender = !container.classList.contains("is-rendered");
+    container.classList.add("is-rendered");
+
     const cards = container.querySelectorAll(".cocktail-card");
     if (!cards.length) { seen.clear(); return; } 
 
@@ -665,6 +729,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const id = card.getAttribute("data-drink-id");
       if (!revealObserver || seen.has(id)) {
         card.classList.remove("reveal"); 
+      } else if (firstRender && card.getBoundingClientRect().top < window.innerHeight) {
+        // Cards already on screen when the page opens get a quick float-in, so the main
+        // photo shows sooner (faster LCP). Cards further down keep the slower effect.
+        card.classList.add("reveal-quick", "is-visible");
+        seen.add(id);
       } else {
         revealObserver.observe(card);
       }
@@ -724,18 +793,69 @@ document.addEventListener("DOMContentLoaded", () => {
       instList.innerHTML = "<li>Combine ingredients with ice, mix well, strain or serve cold.</li>";
     }
 
-    lastFocusedEl = document.activeElement;
+    renderModalExtras(drink);
+
+    // Only remember where focus was the first time (an "Also try" link reuses the open popup)
+    if (!modal.classList.contains("active")) lastFocusedEl = document.activeElement;
+    const content = modal.querySelector(".modal-content");
+    if (content) content.scrollTop = 0;
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden"; 
     if (modalCloseBtn) modalCloseBtn.focus();
   }
 
+  // "Also try" links + official IBA recipe link at the bottom of the popup
+  function renderModalExtras(drink) {
+    const content = modal.querySelector(".modal-content");
+    if (!content) return;
+    let extras = document.getElementById("modal-extras");
+    if (!extras) {
+      extras = document.createElement("div");
+      extras.id = "modal-extras";
+      extras.className = "modal-extras";
+      content.appendChild(extras);
+    }
+
+    const related = (RELATED_DRINKS[drink.id] || []).map(findDrinkById).filter(Boolean);
+    const relatedHTML = related.length ? `
+      <h3>Also try</h3>
+      <ul class="also-try-list">
+        ${related.map(r => `
+          <li><a href="${pageForDrink(r)}#drink-${r.id}" class="also-try-link">
+            <span class="also-try-name">${r.name}</span>
+            <span class="also-try-tagline">${r.tagline}</span>
+          </a></li>`).join("")}
+      </ul>` : "";
+
+    const iba = IBA_LINKS[drink.name];
+    const ibaHTML = iba ? `
+      <p class="source-link">
+        <a href="${iba.url}" target="_blank" rel="noopener">${iba.label || `Official ${drink.name} recipe (IBA)`} ↗</a>
+        <span>from the International Bartenders Association</span>
+      </p>` : "";
+
+    extras.innerHTML = relatedHTML + ibaHTML;
+  }
+
+  // Open a drink from a link like "low-abv.html#drink-103" (used by "Also try")
+  function openDrinkFromHash() {
+    const match = window.location.hash.match(/^#drink-(\d+)$/);
+    if (!match) return;
+    const drink = findDrinkById(match[1]);
+    if (drink) openModal(drink);
+  }
+  window.addEventListener("hashchange", openDrinkFromHash);
+
   function closeModal() {
     if (!modal) return;
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    // Remove "#drink-…" from the address so the popup doesn't reopen on refresh
+    if (/^#drink-\d+$/.test(window.location.hash) && window.history && history.replaceState) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
     if (lastFocusedEl && document.contains(lastFocusedEl)) lastFocusedEl.focus();
     lastFocusedEl = null;
   }
@@ -784,11 +904,62 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  function renderCardHTML(cocktail, badgeHTML = "", extraButtonHTML = "") {
+  // Real widths of the full-size photos (used in srcset so the browser picks the right file).
+  // Every photo also has a 400px version named like "margarita-400.webp".
+  const IMAGE_WIDTHS = {
+    "americano": 780,
+    "aperol-spritz": 800,
+    "cucumber-ginger-fizz": 800,
+    "daiquiri": 467,
+    "dry-martini": 800,
+    "espresso-martini": 800,
+    "gimlet": 800,
+    "lillet-highball": 800,
+    "margarita": 800,
+    "mojito": 800,
+    "moscow-mule": 683,
+    "negroni": 800,
+    "old-fashioned": 704,
+    "paloma-zero-proof": 800,
+    "sherry-cobbler": 800,
+    "tommys-margarita": 720,
+    "virgin-mojito": 800,
+    "whiskey-sour": 800
+  };
+  function imageWidthFor(cocktail) {
+    const file = (cocktail.image || "").split("/").pop().replace(/\.webp$/, "");
+    return IMAGE_WIDTHS[file] || null;
+  }
+
+  // Builds the <img> for a card.
+  // - srcset offers a 400px and a full-size version; the browser picks the one the screen needs.
+  // - The first cards on a page load right away (they are what visitors see first, LCP);
+  //   cards further down load lazily when they scroll into view.
+  function cardImageHTML(cocktail, index) {
+    const alt = (cocktail.altText || cocktail.name).replace(/^Image of /i, "");
+
+    // No photo for this drink: show the placeholder instead of requesting a missing file (404)
+    if (!cocktail.image) {
+      return `<div class="card-image-wrapper img-missing" role="img" aria-label="${alt}"></div>`;
+    }
+
+    const small = cocktail.image.replace(/\.webp$/, "-400.webp");
+    const fullWidth = imageWidthFor(cocktail);
+    const srcset = fullWidth
+      ? `srcset="${small} 400w, ${cocktail.image} ${fullWidth}w" sizes="(max-width: 700px) calc(100vw - 4rem), 340px"`
+      : "";
+    const isFirstRow = Number.isInteger(index) && index < 3;
+    const loading = isFirstRow ? `loading="eager"${index === 0 ? ' fetchpriority="high"' : ""}` : `loading="lazy"`;
+
+    return `
+        <div class="card-image-wrapper">
+          <img src="${cocktail.image}" ${srcset} alt="${alt}" class="card-img" width="400" height="200" ${loading} decoding="async" />
+        </div>`;
+  }
+
+  function renderCardHTML(cocktail, badgeHTML = "", extraButtonHTML = "", index = null) {
     const servings = getServings();
     const isFav = favorites.includes(cocktail.name);
-
-    const imgSrc = cocktail.image || "images/default-cocktail.jpg";
 
     return `
       <article class="cocktail-card card clickable-card reveal" data-drink-id="${cocktail.id}" tabindex="0">
@@ -800,9 +971,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${isFav ? "❤" : "🤍"}
           </button>
         </div>
-        <div class="card-image-wrapper">
-          <img src="${imgSrc}" alt="${(cocktail.altText || cocktail.name).replace(/^Image of /i, "")}" class="card-img" loading="lazy" />
-        </div>
+        ${cardImageHTML(cocktail, index)}
         <div class="card-content">
           <h3 class="card-title">${cocktail.name}</h3>
           <span class="card-subtitle">${cocktail.tagline}</span>
@@ -835,7 +1004,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "@type": "Recipe",
       "name": drink.name,
       "description": `${drink.name}: ${drink.tagline.toLowerCase()}. Served in a ${drink.glass.toLowerCase()}, ${drink.method.toLowerCase()}.`,
-      "image": new URL(drink.image || "images/default-cocktail.jpg", document.baseURI).href,
+      ...(drink.image ? { "image": new URL(drink.image, document.baseURI).href } : {}),
       "author": { "@type": "Organization", "name": "pour." },
       "recipeCategory": "Cocktail",
       "recipeYield": "1 serving",
@@ -871,7 +1040,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const homeGridContainer = document.getElementById("cocktail-grid");
   function renderHomeGrid() {
     if (!homeGridContainer) return;
-    setGrid(homeGridContainer, recipeDatabase.map(c => renderCardHTML(c)).join(""));
+    setGrid(homeGridContainer, recipeDatabase.map((c, i) => renderCardHTML(c, "", "", i)).join(""));
   }
 
   if (homeGridContainer) {
@@ -944,6 +1113,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setGrid(cabinetResultsGrid, `
           <div class="no-results-card card">
             <p>👈 Check off ingredients in the sidebar to see cocktails you can make!</p>
+            <p class="inline-suggestion">Just browsing? See the <a href="index.html">most popular cocktails</a> or the <a href="low-abv.html">zero-proof and low-alcohol drinks</a>.</p>
           </div>
         `);
         return;
@@ -971,6 +1141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setGrid(cabinetResultsGrid, `
           <div class="no-results-card card">
             <p>No matching or near-matching cocktails found. Try checking a main spirit like Tequila, Bourbon, or Rum!</p>
+            <p class="inline-suggestion">Short on bottles? Our <a href="minimalist.html">3-ingredient cocktails</a> need almost nothing, or <a href="quiz.html">take the Flavor Quiz</a> for a pick.</p>
           </div>
         `);
         return;
@@ -1020,6 +1191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (servingsInput) servingsInput.addEventListener("input", filterCabinetRecipes);
 
     renderCabinetSidebar();
+    filterCabinetRecipes(); // shows the starting message (with suggestion links)
   }
 
   // 7. LOW-ABV & ZERO-PROOF PAGE LOGIC ("low-abv.html")
@@ -1033,8 +1205,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return item.type === activeFilter;
       });
 
-      setGrid(lowAbvGrid, filtered.map(cocktail => 
-        renderCardHTML(cocktail, `<span class="abv-badge ${cocktail.type}">${cocktail.abvText}</span>`)
+      setGrid(lowAbvGrid, filtered.map((cocktail, i) =>
+        renderCardHTML(cocktail, `<span class="abv-badge ${cocktail.type}">${cocktail.abvText}</span>`, "", i)
       ).join(""));
     }
 
@@ -1066,8 +1238,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return item.baseSpirit === selectedSpirit;
       });
 
-      setGrid(minimalistGrid, filtered.map(cocktail => 
-        renderCardHTML(cocktail, `<span class="minimalist-badge">3 Ingredients</span>`)
+      setGrid(minimalistGrid, filtered.map((cocktail, i) =>
+        renderCardHTML(cocktail, `<span class="minimalist-badge">3 Ingredients</span>`, "", i)
       ).join(""));
     }
 
@@ -1195,6 +1367,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
+  // Open a drink popup if the address ends with "#drink-123" (from an "Also try" link)
+  openDrinkFromHash();
+
+
   // 10. FOOTER & COOKIE BANNER LOGIC
   // Dynamic Copyright Year
   const yearSpan = document.getElementById("copyright-year");
@@ -1216,5 +1392,18 @@ document.addEventListener("DOMContentLoaded", () => {
       cookieBanner.classList.add("hidden");
     });
   }
+
+
+  // 11. CONTACT EMAIL (spam protection)
+  // The address is never written whole in the HTML. It is put together here from two parts,
+  // so simple spam bots that scan page source for "name@domain" don't find it.
+  document.querySelectorAll(".js-email").forEach(link => {
+    const user = link.getAttribute("data-user");
+    const domain = link.getAttribute("data-domain");
+    if (!user || !domain) return;
+    const address = `${user}@${domain}`;
+    link.href = `mailto:${address}`;
+    link.textContent = address;
+  });
 
 });
