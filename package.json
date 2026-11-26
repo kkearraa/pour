@@ -1,13 +1,10 @@
 {
-  "name": "pour-server",
+  "name": "pour",
   "version": "1.0.0",
   "private": true,
-  "description": "MySQL-backed API and web server for the pour. cocktail website",
-  "main": "server.js",
+  "description": "pour. cocktail website with a MySQL database (the server code is in server/)",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "db:setup": "node setup-db.js"
+    "start": "node server/server.js"
   },
   "engines": {
     "node": ">=18"
