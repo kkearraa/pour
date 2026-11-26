@@ -173,13 +173,14 @@ async function saveImage(dataUrl) {
   await fsp.mkdir(config.uploadDir, { recursive: true });
   const file = `${crypto.randomBytes(12).toString("hex")}.${ext}`;
   await fsp.writeFile(path.join(config.uploadDir, file), buf);
-  return path.relative(config.siteRoot, path.join(config.uploadDir, file)).split(path.sep).join("/");
+  return `uploads/${file}`; // served from UPLOAD_DIR at /uploads/...
 }
 
 async function removeImage(imagePath) {
   if (!imagePath) return;
-  const full = path.resolve(config.siteRoot, imagePath);
-  if (!full.startsWith(config.uploadDir + path.sep)) return; // only ever delete uploaded photos
+  const m = String(imagePath).match(/^uploads\/([a-f0-9]{24}\.(?:webp|jpg|png))$/);
+  if (!m) return; // only ever delete uploaded photos
+  const full = path.join(config.uploadDir, m[1]);
   await fsp.unlink(full).catch(() => {});
 }
 
@@ -278,27 +279,31 @@ const TYPES = {
   ".webp": "image/webp", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json"
 };
 // Folders and files that must never be downloadable
-const PRIVATE = new Set(["server", "database", "node_modules", "README.md", "DATABASE.md", "package.json", "package-lock.json"]);
+const PRIVATE = new Set(["server", "database", "node_modules", "uploads", "README.md", "DATABASE.md", "package.json", "package-lock.json", "railway.json"]);
 
 function serveStatic(req, res, url) {
   let rel;
   try { rel = decodeURIComponent(url.pathname); } catch { rel = "/"; }
   const segments = rel.split("/").filter(Boolean);
-  const blocked = segments.some(s => s.startsWith(".")) || (segments.length && PRIVATE.has(segments[0]));
+  const blocked = segments.some(s => s.startsWith(".")) ||
+    (segments.length && PRIVATE.has(segments[0]) && segments[0] !== "uploads");
 
-  let file = path.resolve(config.siteRoot, "." + path.posix.normalize("/" + segments.join("/")));
-  if (!blocked && file.startsWith(config.siteRoot)) {
+  // Uploaded photos live in UPLOAD_DIR (which can be a Railway volume outside the site folder)
+  const isUpload = segments[0] === "uploads" && segments.length === 2 && /^[a-f0-9]{24}\.(webp|jpg|png)$/.test(segments[1]);
+  let file = isUpload
+    ? path.join(config.uploadDir, segments[1])
+    : path.resolve(config.siteRoot, "." + path.posix.normalize("/" + segments.join("/")));
+  if (!blocked && !isUpload && file.startsWith(config.siteRoot)) {
     try { if (fs.statSync(file).isDirectory()) file = path.join(file, "index.html"); } catch { /* not found */ }
   }
   const ext = path.extname(file).toLowerCase();
 
-  if (blocked || !file.startsWith(config.siteRoot) || !TYPES[ext] || !fs.existsSync(file)) {
+  if (blocked || (!isUpload && !file.startsWith(config.siteRoot)) || !TYPES[ext] || !fs.existsSync(file)) {
     const notFound = path.join(config.siteRoot, "404.html");
     res.writeHead(404, { "Content-Type": TYPES[".html"] });
     return fs.createReadStream(notFound).on("error", () => res.end("Not found")).pipe(res);
   }
 
-  const isUpload = file.startsWith(config.uploadDir + path.sep);
   res.writeHead(200, {
     "Content-Type": TYPES[ext],
     "X-Content-Type-Options": "nosniff",
@@ -342,14 +347,27 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
-  server.listen(config.port, async () => {
-    console.log(`pour. is running at http://localhost:${config.port}`);
+  // Connect to MySQL, retrying every few seconds: on hosts like Railway the
+  // database (or the private network to it) can need a moment after a start.
+  async function connectDatabase(attempt = 1) {
+    const where = `${config.db.host}:${config.db.port} (database "${config.db.database}", user "${config.db.user}")`;
     try {
       await pool.query("SELECT 1");
-      console.log(`Connected to MySQL database "${config.db.database}" on ${config.db.host}:${config.db.port}`);
+      console.log(`Connected to MySQL at ${where}`);
+      if (config.autoSetup) await require("./auto-setup").ensureTables();
     } catch (err) {
-      console.error(`Could not connect to MySQL (${err.code || err.message}). Check server/.env and that MySQL is running.`);
+      const wait = Math.min(30, attempt * 3);
+      console.error(`Could not connect to MySQL at ${where}: ${err.code || err.message}. Trying again in ${wait} s (attempt ${attempt}).`);
+      if (config.db.host === "localhost" && (process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID)) {
+        console.error("Hint: the host is 'localhost', so MYSQL_URL is missing or empty in this service's Variables.");
+      }
+      setTimeout(() => connectDatabase(attempt + 1), wait * 1000).unref();
     }
+  }
+
+  server.listen(config.port, () => {
+    console.log(`pour. is running at http://localhost:${config.port}`);
+    connectDatabase();
   });
 
   const shutdown = () => { server.close(() => pool.end().finally(() => process.exit(0))); };
