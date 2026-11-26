@@ -1,0 +1,30 @@
+# ---------------------------------------------------------------------
+# pour. — MySQL 8 server settings (copy the [mysqld] lines into your
+# real my.cnf / my.ini and restart MySQL)
+#
+#   Linux:   /etc/mysql/my.cnf  or  /etc/mysql/mysql.conf.d/mysqld.cnf
+#   macOS:   /opt/homebrew/etc/my.cnf  (Homebrew)
+#   Windows: C:\ProgramData\MySQL\MySQL Server 8.x\my.ini
+# ---------------------------------------------------------------------
+[mysqld]
+default_storage_engine         = InnoDB
+
+# Buffer pool: 70-80% of RAM on a dedicated database server.
+# This site's whole database is a few MB, and on a laptop or a small VPS
+# the web server shares the machine, so a modest value is plenty.
+# On a dedicated 16 GB DB server you would use 12G and 8 instances.
+innodb_buffer_pool_size        = 256M
+
+# Slow query log: find slow queries before tuning anything
+slow_query_log                 = ON
+slow_query_log_file            = /var/log/mysql/pour-slow.log
+long_query_time                = 1
+# Turn this off again if the log floods
+log_queries_not_using_indexes  = ON
+
+# Enough for the app's connection pool (server/.env DB_POOL_SIZE)
+# plus your own admin sessions
+max_connections                = 100
+
+# MySQL 8.0 has no query cache. Do NOT add query_cache_* settings:
+# the app caches results itself (server/cache.js).

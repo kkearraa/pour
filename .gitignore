@@ -1,0 +1,9 @@
+# Passwords and secrets: never upload these to GitHub
+server/.env
+.env
+
+# Installed packages (re-created with "npm install")
+node_modules/
+
+# Photos uploaded by visitors (they live on the server, backed up separately)
+uploads/

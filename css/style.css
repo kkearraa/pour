@@ -1218,3 +1218,72 @@ img { max-width: 100%; }
   animation-delay: 0ms;
 }
 .reveal.reveal-quick.is-visible .card-img { animation: none; }
+
+/* =====================================================================
+   COMMUNITY PAGE + "SHARE YOUR RECIPE" FORM
+   ===================================================================== */
+.card-author { display: block; margin-top: -0.35rem; margin-bottom: 0.6rem; font-size: 0.82rem; color: var(--text-muted); font-style: italic; }
+.community-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  background-color: #7c3aed;
+  color: #f5f3ff;
+}
+.load-more-wrap { display: flex; justify-content: center; margin: 1.5rem 0 0; }
+.load-more-btn { padding: 0.6rem 1.4rem; }
+.load-more-btn:disabled { opacity: 0.6; cursor: wait; }
+
+.share-card { margin-top: 3rem; padding: 2rem; scroll-margin-top: 90px; }
+.share-card h2 { color: var(--accent); margin-bottom: 0.4rem; }
+.share-intro { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.25rem; }
+.form-field { display: block; }
+.form-field > span { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
+.form-field--wide { grid-column: 1 / -1; }
+.form-hint { font-weight: 400; font-size: 0.82rem; color: var(--text-muted); }
+.recipe-form select.search-input { cursor: pointer; }
+.recipe-form textarea.search-input { resize: vertical; min-height: 7rem; font-family: inherit; line-height: 1.5; }
+.recipe-form input[type="file"].search-input { padding: 0.5rem; }
+
+.form-fieldset { border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem 1.1rem 0.8rem; margin: 0.25rem 0 1.25rem; }
+.form-fieldset legend { padding: 0 0.4rem; font-weight: 600; font-size: 0.9rem; }
+.form-inline { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; font-size: 0.9rem; }
+.form-inline .search-input { width: auto; margin-bottom: 0; }
+
+.ingredient-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+.ingredient-row { display: grid; grid-template-columns: minmax(0, 1fr) 7rem 2.2rem 2.2rem; gap: 0.5rem; align-items: center; }
+.ingredient-row .search-input { margin-bottom: 0; }
+.ing-unit { color: var(--text-muted); font-size: 0.9rem; }
+.remove-ing {
+  width: 2.2rem; height: 2.2rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border-color); background: transparent; color: var(--text-muted);
+}
+.remove-ing:hover { color: #ef4444; border-color: #ef4444; }
+.add-ingredient-btn { margin-top: 0.75rem; font-size: 0.95rem; }
+.add-ingredient-btn:disabled { opacity: 0.5; cursor: not-allowed; text-decoration: none; }
+
+.photo-preview img { max-width: 220px; max-height: 160px; border-radius: 10px; object-fit: cover; margin: -0.4rem 0 1rem; display: block; }
+.submit-btn { font-size: 1rem; padding: 0.7rem 1.6rem; margin-top: 0.75rem; background-color: var(--accent); color: #0f172a; }
+.submit-btn:disabled { opacity: 0.6; cursor: wait; }
+
+.form-status { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; }
+.form-status.success { background: rgba(5, 150, 105, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+.form-status.error, .form-error { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+[data-theme="light"] .form-status.success { color: #047857; }
+[data-theme="light"] .form-status.error, [data-theme="light"] .form-error { color: #b91c1c; }
+.form-error { padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem; }
+
+/* Spam trap: visually hidden, still in the form */
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .share-card { padding: 1.25rem; }
+  .ingredient-row { grid-template-columns: minmax(0, 1fr) 5rem 1.8rem 2.2rem; }
+}
