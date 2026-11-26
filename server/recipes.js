@@ -16,7 +16,7 @@ const PUBLISHED = 1;
 
 const RECIPE_COLUMNS = `r.id, r.section, r.name, r.tagline, r.flavor_profile, r.abv_type, r.abv_text,
   r.base_spirit, r.glass, r.method, r.garnish, r.ice, r.image_path, r.image_width, r.alt_text,
-  r.iba_url, r.iba_label, r.author_name, r.created_at`;
+  r.iba_url, r.iba_label, r.user_id, r.author_name, r.created_at`;
 
 // Turns database rows into the same object shape the front end always used
 function toDrink(row) {
@@ -37,6 +37,7 @@ function toDrink(row) {
     altText: row.alt_text,
     ...(row.iba_url ? { iba: { url: row.iba_url, ...(row.iba_label ? { label: row.iba_label } : {}) } } : {}),
     ...(row.author_name ? { author: row.author_name } : {}),
+    ...(row.section === "community" ? { userId: row.user_id || null } : {}),
     createdAt: row.created_at,
     ingredients: [],
     instructions: [],
@@ -169,51 +170,102 @@ function normalizeName(name) {
   return String(name || "").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
-async function createRecipe(recipe, { status }) {
+// Writes a recipe's ingredients and steps (inside the caller's transaction).
+// Existing ingredients are looked up first; only new names are inserted
+// (this avoids burning AUTO_INCREMENT ids on duplicates).
+async function writeIngredientsAndSteps(conn, recipeId, recipe) {
+  const names = recipe.ingredients.map(i => i.name);
+  const [existing] = await conn.query(`SELECT id, name FROM ingredients WHERE name IN (?)`, [names]);
+  const idByName = new Map(existing.map(r => [r.name.toLowerCase(), r.id]));
+  const newOnes = names.filter(n => !idByName.has(n));
+  if (newOnes.length) {
+    await conn.query(
+      `INSERT IGNORE INTO ingredients (name, category) VALUES ?`,
+      [newOnes.map(n => [n, categorize(n)])]);
+    const [added] = await conn.query(`SELECT id, name FROM ingredients WHERE name IN (?)`, [newOnes]);
+    for (const r of added) idByName.set(r.name.toLowerCase(), r.id);
+  }
+
+  await conn.query(
+    `INSERT INTO recipe_ingredients (recipe_id, position, ingredient_id, amount_oz) VALUES ?`,
+    [recipe.ingredients.map((ing, i) => [recipeId, i + 1, idByName.get(ing.name), ing.oz])]);
+
+  await conn.query(
+    `INSERT INTO recipe_steps (recipe_id, position, body) VALUES ?`,
+    [recipe.instructions.map((step, i) => [recipeId, i + 1, step])]);
+}
+
+async function inTransaction(work) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-
-    const [result] = await conn.query(
-      `INSERT INTO recipes (section, status, name, tagline, flavor_profile, abv_type, abv_text,
-                            glass, method, garnish, ice, image_path, alt_text, author_name, ingredient_count)
-       VALUES ('community', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [status, recipe.name, recipe.tagline, recipe.flavorProfile, recipe.abvType, recipe.abvText,
-       recipe.glass, recipe.method, recipe.garnish, recipe.ice, recipe.imagePath, recipe.altText,
-       recipe.author, recipe.ingredients.length]);
-    const recipeId = result.insertId;
-
-    // Find ingredients that already exist; insert only the new ones.
-    // (Reading first avoids burning AUTO_INCREMENT ids on duplicates.)
-    const names = recipe.ingredients.map(i => i.name);
-    const [existing] = await conn.query(`SELECT id, name FROM ingredients WHERE name IN (?)`, [names]);
-    const idByName = new Map(existing.map(r => [r.name.toLowerCase(), r.id]));
-    const newOnes = names.filter(n => !idByName.has(n));
-    if (newOnes.length) {
-      await conn.query(
-        `INSERT IGNORE INTO ingredients (name, category) VALUES ?`,
-        [newOnes.map(n => [n, categorize(n)])]);
-      const [added] = await conn.query(`SELECT id, name FROM ingredients WHERE name IN (?)`, [newOnes]);
-      for (const r of added) idByName.set(r.name.toLowerCase(), r.id);
-    }
-
-    await conn.query(
-      `INSERT INTO recipe_ingredients (recipe_id, position, ingredient_id, amount_oz) VALUES ?`,
-      [recipe.ingredients.map((ing, i) => [recipeId, i + 1, idByName.get(ing.name), ing.oz])]);
-
-    await conn.query(
-      `INSERT INTO recipe_steps (recipe_id, position, body) VALUES ?`,
-      [recipe.instructions.map((step, i) => [recipeId, i + 1, step])]);
-
+    const result = await work(conn);
     await conn.commit();
-    cache.clear(); // the new recipe must show up right away
-    return recipeId;
+    cache.clear(); // changes must show up right away
+    return result;
   } catch (err) {
     await conn.rollback().catch(() => {});
     throw err;
   } finally {
     conn.release();
   }
+}
+
+function createRecipe(recipe, { status, user }) {
+  return inTransaction(async conn => {
+    const [result] = await conn.query(
+      `INSERT INTO recipes (section, status, name, tagline, flavor_profile, abv_type, abv_text,
+                            glass, method, garnish, ice, image_path, alt_text, user_id, author_name, ingredient_count)
+       VALUES ('community', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [status, recipe.name, recipe.tagline, recipe.flavorProfile, recipe.abvType, recipe.abvText,
+       recipe.glass, recipe.method, recipe.garnish, recipe.ice, recipe.imagePath, recipe.altText,
+       user.id, user.username, recipe.ingredients.length]);
+    await writeIngredientsAndSteps(conn, result.insertId, recipe);
+    return result.insertId;
+  });
+}
+
+// Replaces a community recipe's content. `owner` is set when an ownerless
+// recipe (shared before accounts existed) is edited by an admin.
+function updateRecipe(id, recipe, { owner = null } = {}) {
+  return inTransaction(async conn => {
+    const ownerSql = owner ? ", user_id = ?, author_name = ?" : "";
+    await conn.query(
+      `UPDATE recipes SET name = ?, tagline = ?, flavor_profile = ?, abv_type = ?, abv_text = ?,
+              glass = ?, method = ?, garnish = ?, ice = ?, image_path = ?, alt_text = ?, ingredient_count = ?${ownerSql}
+        WHERE id = ? AND section = 'community'`,
+      [recipe.name, recipe.tagline, recipe.flavorProfile, recipe.abvType, recipe.abvText,
+       recipe.glass, recipe.method, recipe.garnish, recipe.ice, recipe.imagePath, recipe.altText,
+       recipe.ingredients.length, ...(owner ? [owner.id, owner.username] : []), id]);
+    await conn.query(`DELETE FROM recipe_ingredients WHERE recipe_id = ?`, [id]);
+    await conn.query(`DELETE FROM recipe_steps WHERE recipe_id = ?`, [id]);
+    await writeIngredientsAndSteps(conn, id, recipe);
+  });
+}
+
+// Owner/permission info for one community recipe (any status)
+async function getCommunityMeta(id) {
+  const [rows] = await pool.query(
+    `SELECT id, user_id, status, image_path FROM recipes WHERE id = ? AND section = 'community'`, [id]);
+  return rows[0] || null;
+}
+
+// A community recipe for its owner's edit form (any status, not cached)
+async function getForEdit(id) {
+  const [rows] = await pool.query(
+    `SELECT ${RECIPE_COLUMNS}, r.status FROM recipes r WHERE r.id = ? AND r.section = 'community'`, [id]);
+  const [drink] = await hydrate(rows);
+  return drink ? { ...drink, status: rows[0].status } : null;
+}
+
+// "My recipes" on the account page, newest first (uses idx_recipes_user_id)
+async function listByUser(userId) {
+  const [rows] = await pool.query(
+    `SELECT ${RECIPE_COLUMNS}, r.status FROM recipes r
+      WHERE r.user_id = ? AND r.section = 'community'
+      ORDER BY r.id DESC LIMIT 200`, [userId]);
+  const drinks = await hydrate(rows);
+  return drinks.map((d, i) => ({ ...d, status: rows[i].status }));
 }
 
 // ---------------------------------------------------------------------
@@ -245,5 +297,6 @@ async function deleteRecipe(id) {
 
 module.exports = {
   listCurated, listCommunity, getRecipe, listIngredients, cabinetSearch,
-  createRecipe, listForReview, setStatus, deleteRecipe, normalizeName
+  createRecipe, updateRecipe, getCommunityMeta, getForEdit, listByUser,
+  listForReview, setStatus, deleteRecipe, normalizeName
 };

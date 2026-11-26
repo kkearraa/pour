@@ -81,9 +81,19 @@ Command line version: `mysql -u root -p < database/schema.sql` then `mysql -u ro
 | Reset the database to the original 21 recipes | `npm run db:setup` (⚠️ **deletes user recipes**) |
 | See what's in the database | MySQL Workbench / phpMyAdmin, database `pour` |
 
+### Accounts
+
+- **Viewing** recipes never needs an account.
+- To **share** a recipe, visitors create an account on `account.html` (menu → **Log in**): a username and a
+  password, no email. Passwords are stored only as scrypt hashes; logins last 30 days.
+- On their own recipes they see **✏️ Edit** and **🗑 Delete** (in the recipe popup, and under **My recipes** on the account page).
+- **Admins** (usernames listed in `ADMIN_USERNAMES`) can edit or delete any community recipe. A recipe shared
+  before accounts existed becomes the admin's own when an admin edits it.
+- **Forgotten password:** there's no email reset. An admin resets it (see section 4); the user is then logged out everywhere.
+
 ### How visitors add a recipe
 
-1. They open **Community** in the menu and scroll to **Share your recipe**.
+1. They log in, open **Community** in the menu and scroll to **Share your recipe**.
 2. They fill in the name, at least **2 ingredients** with amounts (ml, cl or oz), the steps
    (one per line) and optionally a photo (shrunk to max 1200 px in the browser before upload).
 3. They press **Share recipe**. The recipe is saved in one database transaction and appears at the top of the
@@ -113,6 +123,16 @@ DELETE FROM recipes WHERE id = 1001;             -- delete (ingredients & steps 
 ```
 
 Changes made by hand appear on the site within 5 minutes (the cache time), or immediately after restarting the server.
+
+**Easiest:** set `ADMIN_USERNAMES=yourname` (on Railway: pour → Variables), log in on the site, open any community
+recipe and use **Edit** / **Delete**.
+
+**Resetting a user's password** (PowerShell/terminal, while logged in as an admin you can also use ADMIN_TOKEN):
+
+```bash
+curl -X POST -H "Authorization: Bearer some-long-secret" -H "Content-Type: application/json" \
+     -d '{"username":"bob","password":"new-password-123"}' https://YOUR-SERVER/api/admin/users/reset-password
+```
 
 Or use the **admin API** — set `ADMIN_TOKEN=some-long-secret` in `.env`, restart, then:
 
@@ -200,6 +220,7 @@ Check: `https://YOUR-ADDRESS.up.railway.app/api/health` should show `{"ok":true}
 | Cache close to the user | Server sends `Cache-Control` headers: images/CSS/JS cached by the browser, uploaded photos cached for a year |
 | Keep files out of the database | Photos saved in `uploads/`, only `image_path` stored |
 | Least privilege | The site connects as `pour_app` with only SELECT/INSERT/UPDATE/DELETE |
+| Compact keys for sessions | `sessions.token_hash BINARY(32)` (SHA-256 of the login token) as primary key; `idx_sessions_expires` for the hourly cleanup |
 
 ---
 

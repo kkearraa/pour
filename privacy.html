@@ -70,7 +70,7 @@
 
       <h2>The short version</h2>
       <ul>
-        <li>No accounts or sign-ups. The only form is "Share your recipe", and you decide what goes in it.</li>
+        <li>Browsing recipes never needs an account. An account (username and password, no email) is only needed to share recipes.</li>
         <li>No advertising, no analytics and no tracking cookies.</li>
         <li>No newsletter. We will never add you to a mailing list.</li>
         <li>Your settings and favorites are stored only in your own browser.</li>
@@ -82,13 +82,17 @@
         <li><code>pour_favorites</code>: the drinks you marked with the heart button.</li>
         <li><code>theme</code>: whether you chose the light or dark look.</li>
         <li><code>pour_cookies_accepted</code>: that you closed the storage notice, so it isn't shown again.</li>
+        <li><code>pour_session</code>: only if you log in. A random code that keeps you logged in for up to 30 days; it is removed when you log out.</li>
       </ul>
-      <p>You can delete it at any time by clearing this website's data in your browser settings (often under "Cookies and site data"). The site keeps working; it just forgets your favorites and theme.</p>
+      <p>You can delete it at any time by clearing this website's data in your browser settings (often under "Cookies and site data"). The site keeps working; it just forgets your favorites and theme, and logs you out.</p>
 
-      <h2>If you share a recipe</h2>
-    <p>When you use the "Share your recipe" form on the <a href="community.html">Community page</a>, we save what you entered in our recipe database: the recipe itself, the name you typed (optional, it can be a nickname) and the photo, if you added one, together with the time it was sent. This is shown publicly on the site so other visitors can make your drink. Please don't put private information in a recipe.</p>
+      <h2>If you create an account</h2>
+    <p>We store your username, a scrambled (hashed) version of your password that can't be turned back into the password, and when you signed up. We don't ask for your email or real name. While you're logged in, we also store a scrambled copy of your login code and when it expires (after 30 days, or when you log out).</p>
+
+    <h2>If you share a recipe</h2>
+    <p>When you use the "Share your recipe" form on the <a href="community.html">Community page</a>, we save what you entered in our recipe database: the recipe itself and the photo, if you added one, together with your username and the time it was sent. This is shown publicly on the site so other visitors can make your drink. Please don't put private information in a recipe. You can edit or delete your recipes at any time from <a href="account.html">your account</a>.</p>
     <p>To stop spam, the server briefly remembers the IP address a recipe came from (in memory, for at most one hour, to allow a few recipes per hour). It is not saved in the database.</p>
-    <p>We keep shared recipes for as long as the site runs. To have yours changed or removed, <a href="contact.html">contact us</a> and tell us the recipe's name.</p>
+    <p>We keep shared recipes and accounts for as long as the site runs, or until you delete them. To have your account deleted, <a href="contact.html">contact us</a> and tell us your username.</p>
 
     <h2>Our hosting provider</h2>
       <p>This website is hosted on GitHub Pages. GitHub logs the IP address of visitors for security purposes, as explained in <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages" target="_blank" rel="noopener">GitHub's documentation on GitHub Pages</a>. We do not have access to these logs and don't use them.</p>
@@ -108,7 +112,7 @@
         <li>object to or restrict how we use your data;</li>
         <li>complain to the data protection authority in your country.</li>
       </ul>
-      <p>In practice, the only personal data we could hold is an email you sent us or a name you entered with a recipe. To use any of these rights, just <a href="contact.html">contact us</a>.</p>
+      <p>In practice, the only personal data we could hold is an email you sent us, or your username and the recipes you shared. To use any of these rights, just <a href="contact.html">contact us</a>.</p>
 
       <h2>Changes to this policy</h2>
       <p>If we change how the site handles data (for example, if we ever add a contact form or ads), we will update this page and the date at the top first.</p>
@@ -151,7 +155,7 @@
 <!-- COOKIE BANNER -->
 <div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
   <div class="cookie-content">
-    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
+    <p>We use local storage to save your favorites, settings and login. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
     <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
   </div>
 </div>

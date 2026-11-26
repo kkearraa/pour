@@ -9,11 +9,24 @@
 //   GET    /api/recipes/:id                one published recipe
 //   GET    /api/ingredients                ingredient names + categories
 //   POST   /api/cabinet                    { "ingredients": ["gin", "lime juice"] }
-//   POST   /api/recipes                    add a recipe (the "Share your recipe" form)
-//   GET    /api/admin/recipes              pending/hidden recipes        (Authorization: Bearer ADMIN_TOKEN)
-//   PATCH  /api/admin/recipes/:id          { "status": 0 | 1 | 2 }       (Authorization: Bearer ADMIN_TOKEN)
-//   DELETE /api/admin/recipes/:id          remove a recipe               (Authorization: Bearer ADMIN_TOKEN)
 //   GET    /api/health                     checks the database connection
+//
+// Accounts (the browser sends "Authorization: Bearer <session token>")
+//   POST   /api/auth/signup                { "username", "password" } -> { token, user }
+//   POST   /api/auth/login                 { "username", "password" } -> { token, user }
+//   POST   /api/auth/logout
+//   GET    /api/auth/me                    the logged-in user
+//   GET    /api/my/recipes                 your recipes (any status)
+//   POST   /api/recipes                    share a recipe            (logged in)
+//   GET    /api/recipes/:id/edit           recipe for the edit form  (owner or admin)
+//   PUT    /api/recipes/:id                save changes              (owner or admin)
+//   DELETE /api/recipes/:id                delete                    (owner or admin)
+//
+// Admin (ADMIN_TOKEN, or a user listed in ADMIN_USERNAMES)
+//   GET    /api/admin/recipes              pending/hidden recipes
+//   PATCH  /api/admin/recipes/:id          { "status": 0 | 1 | 2 }
+//   DELETE /api/admin/recipes/:id          remove a recipe
+//   POST   /api/admin/users/reset-password { "username", "password" }
 const http = require("http");
 const fs = require("fs");
 const fsp = require("fs/promises");
@@ -23,6 +36,7 @@ const crypto = require("crypto");
 const config = require("./config");
 const pool = require("./db");
 const recipes = require("./recipes");
+const auth = require("./auth");
 
 const MAX_BODY_BYTES = 3 * 1024 * 1024;   // JSON body incl. a base64 photo
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -70,28 +84,56 @@ function clientIp(req) {
   return req.socket.remoteAddress || "unknown";
 }
 
-function isAdmin(req) {
+function hasAdminToken(req) {
   if (!config.adminToken) return false;
-  const given = Buffer.from(String(req.headers.authorization || "").replace(/^Bearer\s+/i, ""));
+  const given = Buffer.from(auth.bearerToken(req) || "");
   const expected = Buffer.from(config.adminToken);
   return given.length === expected.length && crypto.timingSafeEqual(given, expected);
 }
 
-// Very small rate limit for submissions: N per IP per hour, kept in memory
-const submissionLog = new Map();
-function checkRateLimit(ip) {
-  const hourAgo = Date.now() - 60 * 60 * 1000;
-  const times = (submissionLog.get(ip) || []).filter(t => t > hourAgo);
-  if (times.length >= config.maxSubmissionsPerHour) {
-    throw new HttpError(429, "You have shared a lot of recipes in the last hour. Please try again later.");
-  }
-  times.push(Date.now());
-  submissionLog.set(ip, times);
+// The logged-in user of a request (looked up once per request)
+function currentUser(req) {
+  if (!req._userPromise) req._userPromise = auth.userFromRequest(req);
+  return req._userPromise;
 }
-setInterval(() => {
-  const hourAgo = Date.now() - 60 * 60 * 1000;
-  for (const [ip, times] of submissionLog) if (!times.some(t => t > hourAgo)) submissionLog.delete(ip);
-}, 10 * 60 * 1000).unref();
+
+async function requireUser(req, message = "Please log in first.") {
+  const user = await currentUser(req);
+  if (!user) throw new HttpError(401, message);
+  return user;
+}
+
+async function isAdmin(req) {
+  return hasAdminToken(req) || auth.isAdminUser(await currentUser(req));
+}
+
+// Small in-memory rate limits: at most `max` events per key in `windowMs`
+function makeLimiter(max, windowMs, message) {
+  const log = new Map();
+  setInterval(() => {
+    const cutoff = Date.now() - windowMs;
+    for (const [key, times] of log) if (!times.some(t => t > cutoff)) log.delete(key);
+  }, 10 * 60 * 1000).unref();
+  return {
+    check(key) {
+      const times = (log.get(key) || []).filter(t => t > Date.now() - windowMs);
+      log.set(key, times);
+      if (times.length >= max) throw new HttpError(429, message);
+    },
+    hit(key) { (log.get(key) || log.set(key, []).get(key)).push(Date.now()); }
+  };
+}
+const submissionLimit = makeLimiter(config.maxSubmissionsPerHour, 60 * 60 * 1000,
+  "You have shared a lot of recipes in the last hour. Please try again later.");
+const loginLimit = makeLimiter(10, 15 * 60 * 1000,
+  "Too many wrong passwords. Please wait 15 minutes and try again.");
+const signupLimit = makeLimiter(5, 60 * 60 * 1000,
+  "Too many new accounts from your network. Please try again later.");
+
+function checkRateLimit(ip) {
+  submissionLimit.check(ip);
+  submissionLimit.hit(ip);
+}
 
 // ---------------------------------------------------------------------
 // Validating a submitted recipe
@@ -111,7 +153,6 @@ function validateRecipe(body) {
   if (body.website) throw new HttpError(400, "Submission rejected."); // hidden "honeypot" field bots fill in
 
   const name = cleanText(body.name, { field: "Cocktail name", max: 80, min: 2, required: true });
-  const author = cleanText(body.author, { field: "Your name", max: 60 }) || "Anonymous";
   const tagline = cleanText(body.tagline, { field: "Short description", max: 120 });
   const flavorProfile = FLAVORS.includes(body.flavorProfile) ? body.flavorProfile : null;
   const abvType = ["zero", "low"].includes(body.abvType) ? body.abvType : null;
@@ -143,12 +184,12 @@ function validateRecipe(body) {
   if (instructions.length > 12) throw new HttpError(400, "Use at most 12 steps.");
 
   return {
-    name, author, tagline: tagline || "Shared by the pour. community", flavorProfile, abvType, abvText,
+    name, tagline: tagline || "Shared by the pour. community", flavorProfile, abvType, abvText,
     glass: cleanText(body.glass, { field: "Glass", max: 40 }),
     method: cleanText(body.method, { field: "Method", max: 40 }),
     garnish: cleanText(body.garnish, { field: "Garnish", max: 80 }),
     ice: cleanText(body.ice, { field: "Ice", max: 40 }),
-    altText: `${name}, a cocktail shared by ${author}`,
+    altText: `${name}, a cocktail shared on pour.`,
     ingredients, instructions, unit
   };
 }
@@ -218,13 +259,14 @@ async function handleApi(req, res, url) {
   }
 
   if (parts[0] === "recipes" && parts.length === 1 && method === "POST") {
+    const user = await requireUser(req, "Please log in to share a recipe.");
     const body = await readJSON(req);
     const recipe = validateRecipe(body);
     checkRateLimit(clientIp(req));
     recipe.imagePath = await saveImage(body.image);
     const status = config.autoPublish ? 1 : 0;
     try {
-      const id = await recipes.createRecipe(recipe, { status });
+      const id = await recipes.createRecipe(recipe, { status, user });
       return sendJSON(res, 201, {
         id, published: status === 1,
         message: status === 1 ? "Thanks! Your recipe is live." : "Thanks! Your recipe will appear after a quick review."
@@ -233,6 +275,78 @@ async function handleApi(req, res, url) {
       await removeImage(recipe.imagePath);
       throw err;
     }
+  }
+
+  // Editing and deleting: only the recipe's owner (or an admin)
+  if (parts[0] === "recipes" && (
+      (parts.length === 2 && (method === "PUT" || method === "DELETE")) ||
+      (parts.length === 3 && parts[2] === "edit" && method === "GET"))) {
+    const user = await requireUser(req, "Please log in to change your recipes.");
+    const id = parseId(parts[1]);
+    const meta = await recipes.getCommunityMeta(id);
+    if (!meta) throw new HttpError(404, "Recipe not found.");
+    const admin = auth.isAdminUser(user);
+    if (meta.user_id !== user.id && !admin) throw new HttpError(403, "You can only change your own recipes.");
+
+    if (method === "GET") return sendJSON(res, 200, { recipe: await recipes.getForEdit(id) });
+
+    if (method === "DELETE") {
+      const result = await recipes.deleteRecipe(id);
+      if (!result.deleted) throw new HttpError(404, "Recipe not found.");
+      await removeImage(result.imagePath);
+      return sendJSON(res, 200, { ok: true, message: "Your recipe was deleted." });
+    }
+
+    // PUT: save changes. Photo: a new one replaces the old, removeImage
+    // drops it, otherwise the current photo is kept.
+    const body = await readJSON(req);
+    const recipe = validateRecipe(body);
+    const newImage = body.image ? await saveImage(body.image) : null;
+    recipe.imagePath = newImage || (body.removeImage ? null : meta.image_path);
+    try {
+      // A recipe shared before accounts existed belongs to the admin who edits it
+      await recipes.updateRecipe(id, recipe, { owner: !meta.user_id && admin ? user : null });
+    } catch (err) {
+      await removeImage(newImage);
+      throw err;
+    }
+    if (meta.image_path && meta.image_path !== recipe.imagePath) await removeImage(meta.image_path);
+    return sendJSON(res, 200, { ok: true, id, message: "Your changes are saved." });
+  }
+
+  // ---- Accounts ----
+  if (parts[0] === "auth" && parts[1] === "signup" && method === "POST") {
+    const ip = clientIp(req);
+    signupLimit.check(ip);
+    const body = await readJSON(req);
+    const result = await auth.signup(body.username, body.password);
+    if (result.error) throw new HttpError(result.status, result.error);
+    signupLimit.hit(ip);
+    return sendJSON(res, 201, result);
+  }
+
+  if (parts[0] === "auth" && parts[1] === "login" && method === "POST") {
+    const ip = clientIp(req);
+    loginLimit.check(ip);
+    const body = await readJSON(req);
+    const result = await auth.login(body.username, body.password);
+    if (result.error) { loginLimit.hit(ip); throw new HttpError(result.status, result.error); }
+    return sendJSON(res, 200, result);
+  }
+
+  if (parts[0] === "auth" && parts[1] === "logout" && method === "POST") {
+    await auth.logout(auth.bearerToken(req));
+    return sendJSON(res, 200, { ok: true });
+  }
+
+  if (parts[0] === "auth" && parts[1] === "me" && method === "GET") {
+    const user = await requireUser(req, "Not logged in.");
+    return sendJSON(res, 200, { user: auth.publicUser(user) });
+  }
+
+  if (parts[0] === "my" && parts[1] === "recipes" && method === "GET") {
+    const user = await requireUser(req);
+    return sendJSON(res, 200, { recipes: await recipes.listByUser(user.id) });
   }
 
   if (parts[0] === "ingredients" && method === "GET") {
@@ -246,8 +360,13 @@ async function handleApi(req, res, url) {
   }
 
   if (parts[0] === "admin") {
-    if (!isAdmin(req)) throw new HttpError(config.adminToken ? 401 : 403,
-      config.adminToken ? "Wrong or missing admin token." : "Admin tools are off. Set ADMIN_TOKEN in server/.env.");
+    if (!(await isAdmin(req))) throw new HttpError(403, "Only admins can do this.");
+    if (parts[1] === "users" && parts[2] === "reset-password" && method === "POST") {
+      const body = await readJSON(req);
+      const result = await auth.resetPassword(body.username, body.password);
+      if (result.error) throw new HttpError(result.status, result.error);
+      return sendJSON(res, 200, { ok: true, message: "Password changed. The user is logged out everywhere." });
+    }
     if (parts[1] === "recipes" && parts.length === 2 && method === "GET") {
       return sendJSON(res, 200, { recipes: await recipes.listForReview() });
     }
@@ -325,7 +444,7 @@ const server = http.createServer(async (req, res) => {
   if (origin && config.allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
@@ -354,7 +473,6 @@ if (require.main === module) {
     try {
       await pool.query("SELECT 1");
       console.log(`Connected to MySQL at ${where}`);
-      if (config.autoSetup) await require("./auto-setup").ensureTables();
     } catch (err) {
       const wait = Math.min(30, attempt * 3);
       console.error(`Could not connect to MySQL at ${where}: ${err.code || err.message}. Trying again in ${wait} s (attempt ${attempt}).`);
@@ -362,6 +480,14 @@ if (require.main === module) {
         console.error("Hint: the host is 'localhost', so MYSQL_URL is missing or empty in this service's Variables.");
       }
       setTimeout(() => connectDatabase(attempt + 1), wait * 1000).unref();
+      return;
+    }
+    try {
+      const setup = require("./auto-setup");
+      if (config.autoSetup) await setup.ensureTables();
+      await setup.migrate();
+    } catch (err) {
+      console.error("Database setup/upgrade failed:", err.code || "", err.message);
     }
   }
 

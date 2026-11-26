@@ -12,7 +12,8 @@ copy `.env.example` to `.env`, `npm run db:setup`, `npm start`, open http://loca
 | File | What it is |
 |---|---|
 | `index.html`, `cabinet.html`, `low-abv.html`, `minimalist.html`, `quiz.html` | Main pages |
-| `community.html` | Recipes shared by visitors + the "Share your recipe" form |
+| `community.html` | Recipes shared by visitors + the "Share your recipe" form (logged-in users) |
+| `account.html` | Log in / sign up, "My recipes" with Edit and Delete |
 | `server/` | Node.js server: website files + recipe API (`server.js`, SQL in `recipes.js`, settings in `.env`) |
 | `database/schema.sql`, `database/seed.sql` | Creates the MySQL tables / loads the starting recipes |
 | `database/maintenance.sql`, `database/my.cnf.example` | Measuring (EXPLAIN, slow log), moderation queries, MySQL settings |

@@ -28,11 +28,28 @@ CREATE DATABASE IF NOT EXISTS pour
 USE pour;
 
 -- Drop in reverse dependency order so the script can be re-run.
+DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS related_recipes;
 DROP TABLE IF EXISTS recipe_steps;
 DROP TABLE IF EXISTS recipe_ingredients;
 DROP TABLE IF EXISTS ingredients;
 DROP TABLE IF EXISTS recipes;
+DROP TABLE IF EXISTS users;
+
+-- ---------------------------------------------------------------------
+-- users: people who can share, edit and delete their own recipes.
+-- Viewing recipes never needs an account.
+-- ---------------------------------------------------------------------
+CREATE TABLE users (
+  id            INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  username      VARCHAR(30)      NOT NULL,        -- unique, case-insensitive (collation *_ci)
+  -- Only a scrypt hash with its own random salt, never the password itself
+  password_hash VARCHAR(255)     NOT NULL,
+  is_admin      TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at    TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_users_username (username)
+) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
 -- recipes: one row per drink (curated and user-submitted)
@@ -59,7 +76,8 @@ CREATE TABLE recipes (
   alt_text         VARCHAR(200)      NOT NULL DEFAULT '',
   iba_url          VARCHAR(255)      NULL,
   iba_label        VARCHAR(80)       NULL,
-  author_name      VARCHAR(60)       NULL,           -- set for community recipes
+  user_id          INT UNSIGNED      NULL,           -- who shared it (community recipes)
+  author_name      VARCHAR(60)       NULL,           -- their username, stored for display
   ingredient_count TINYINT UNSIGNED  NOT NULL DEFAULT 0,  -- stored total
   created_at       TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -68,7 +86,10 @@ CREATE TABLE recipes (
   -- pagination on the community page (WHERE ... AND id < ? ORDER BY id DESC).
   KEY idx_recipes_section_status_id (section, status, id),
   -- Admin review queue: "status = 0 ORDER BY id"
-  KEY idx_recipes_status_id (status, id)
+  KEY idx_recipes_status_id (status, id),
+  -- "My recipes": WHERE user_id = ? ORDER BY id DESC
+  KEY idx_recipes_user_id (user_id, id),
+  CONSTRAINT fk_recipes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB
   AUTO_INCREMENT = 1000;  -- curated drinks keep ids 1-206, new ones start at 1000
 
@@ -122,6 +143,21 @@ CREATE TABLE related_recipes (
   PRIMARY KEY (recipe_id, position),
   CONSTRAINT fk_rel_recipe  FOREIGN KEY (recipe_id)  REFERENCES recipes(id) ON DELETE CASCADE,
   CONSTRAINT fk_rel_related FOREIGN KEY (related_id) REFERENCES recipes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- sessions: who is logged in. The browser keeps a random token; the
+-- database only stores its SHA-256 hash (BINARY(32) = 32 bytes, compact).
+-- ---------------------------------------------------------------------
+CREATE TABLE sessions (
+  token_hash BINARY(32)   NOT NULL,
+  user_id    INT UNSIGNED NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (token_hash),
+  KEY idx_sessions_user (user_id),
+  KEY idx_sessions_expires (expires_at),     -- hourly cleanup of expired sessions
+  CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

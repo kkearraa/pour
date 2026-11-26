@@ -89,7 +89,13 @@
     <!-- SHARE YOUR RECIPE -->
     <section id="share" class="card share-card" aria-labelledby="share-title">
       <h2 id="share-title">Share your recipe</h2>
-      <p class="share-intro">Fields marked * are required. Your recipe is saved in our database and shown on this page with your name.</p>
+      <p class="share-intro">Signed in as <strong id="signed-in-as"></strong>. Fields marked * are required. Your recipe is shown on this page with your username, and you can edit or delete it later from <a href="account.html">your account</a>.</p>
+
+      <!-- Shown instead of the form when nobody is logged in -->
+      <div id="share-login-prompt" class="share-login-prompt hidden">
+        <p>To share a recipe, log in or create a free account. It takes 10 seconds, and it lets you edit or delete your recipes later.</p>
+        <a class="cookie-btn submit-btn" href="account.html?next=community.html%23share">Log in or sign up</a>
+      </div>
 
       <form id="recipe-form" class="recipe-form" novalidate>
         <div class="form-grid">
@@ -98,10 +104,6 @@
             <input class="search-input" name="name" type="text" maxlength="80" minlength="2" required placeholder="e.g. Rosemary Paloma">
           </label>
           <label class="form-field">
-            <span>Your name</span>
-            <input class="search-input" name="author" type="text" maxlength="60" placeholder="Shown as 'by …' (optional)" autocomplete="nickname">
-          </label>
-          <label class="form-field form-field--wide">
             <span>Short description</span>
             <input class="search-input" name="tagline" type="text" maxlength="120" placeholder="e.g. Herbal & Bright">
           </label>
@@ -168,12 +170,18 @@
           <input class="search-input" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
         </label>
         <div id="photo-preview" class="photo-preview"></div>
+        <div id="current-photo" class="current-photo hidden">
+          <span class="form-hint">Current photo (choose a new file above to replace it):</span>
+          <div class="current-photo-img"></div>
+          <label class="form-inline"><input type="checkbox" id="remove-photo"> Remove the photo</label>
+        </div>
 
         <!-- Spam trap: hidden from people, bots fill it in -->
         <label class="hp-field" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
 
-        <p class="form-hint">By sharing, you agree that your recipe (and the name you entered) is shown publicly on pour. Please drink responsibly.</p>
+        <p class="form-hint">By sharing, you agree that your recipe and your username are shown publicly on pour. Please drink responsibly.</p>
         <button type="submit" class="cookie-btn submit-btn">Share recipe</button>
+        <button type="button" id="cancel-edit-btn" class="btn-clear cancel-edit-btn hidden">Cancel editing</button>
         <p id="form-status" class="form-status hidden" role="status" aria-live="polite"></p>
       </form>
     </section>
@@ -248,7 +256,7 @@
 <!-- COOKIE BANNER -->
 <div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
   <div class="cookie-content">
-    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
+    <p>We use local storage to save your favorites, settings and login. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
     <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
   </div>
 </div>

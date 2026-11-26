@@ -51,6 +51,8 @@ module.exports = {
   // Create the tables and load the starting recipes on first start if they are missing
   autoSetup: bool("DB_AUTO_SETUP", false),
   adminToken: env("ADMIN_TOKEN", ""),
+  // Usernames that can edit/delete ANY community recipe (comma separated)
+  adminUsernames: env("ADMIN_USERNAMES", "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean),
   allowedOrigins: env("ALLOWED_ORIGINS", "").split(",").map(s => s.trim()).filter(Boolean),
   trustProxy: bool("TRUST_PROXY", false),
   maxSubmissionsPerHour: Number(env("MAX_SUBMISSIONS_PER_HOUR", 5))

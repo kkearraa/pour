@@ -148,11 +148,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const res = await fetch(API_BASE + path, {
         ...options,
-        headers: { "Accept": "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}) },
+        headers: {
+          "Accept": "application/json",
+          ...(options.body ? { "Content-Type": "application/json" } : {}),
+          ...(sessionToken ? { "Authorization": `Bearer ${sessionToken}` } : {})
+        },
         ...(controller ? { signal: controller.signal } : {})
       });
       let data = null;
       try { data = await res.json(); } catch (e) { data = null; }
+      // The login expired or was ended elsewhere: forget it
+      if (res.status === 401 && sessionToken && !/^\/api\/auth\/(login|signup)/.test(path)) clearSession();
       if (!res.ok) throw new Error((data && data.error) || `The server answered with an error (${res.status}).`);
       return data;
     } catch (err) {
@@ -163,6 +169,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
+
+  // ACCOUNTS
+  // After logging in, the server gives this browser a session token. It is kept
+  // in localStorage and sent with every API request (see api() above). Using a
+  // header instead of a cookie keeps logins working when the pages (GitHub Pages)
+  // and the server (Railway) are on different websites.
+  const SESSION_KEY = "pour_session";
+  let sessionToken = store.get(SESSION_KEY);
+  let currentUser = null;
+
+  function setSession(token, user) {
+    sessionToken = token;
+    currentUser = user;
+    store.set(SESSION_KEY, token);
+  }
+  function clearSession() {
+    sessionToken = null;
+    currentUser = null;
+    store.remove(SESSION_KEY);
+  }
+  // Can the logged-in user edit/delete this drink?
+  function canManage(drink) {
+    return !!(currentUser && drink && drink.section === "community" &&
+      (drink.userId === currentUser.id || currentUser.isAdmin));
+  }
+  // Only allow redirects to pages of this site (e.g. "community.html#share")
+  function safeNext(value) {
+    return /^[a-z0-9-]+\.html(#[a-z0-9-]+)?$/i.test(value || "") ? value : null;
   }
 
   // Uploaded photos are stored on the API server, so when the pages are hosted
@@ -185,6 +220,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const extraDrinks = new Map(); // drinks loaded later (community page, cabinet results), by id
   let recipesLoadError = null;
 
+  // Who is logged in? (asked at the same time as the recipes are loaded)
+  const mePromise = sessionToken
+    ? api("/api/auth/me").then(d => d.user).catch(() => null)
+    : Promise.resolve(null);
+
   // Only pages that show recipes need them (not About, Contact, ...)
   if (document.getElementById("recipe-modal")) {
     try {
@@ -197,6 +237,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Loading recipes failed:", err);
     }
   }
+  currentUser = await mePromise;
+
+  // "Log in" / "👤 username" link at the end of the menu on every page
+  function renderNavAccount() {
+    const menu = document.getElementById("nav-menu");
+    if (!menu) return;
+    let item = document.getElementById("nav-account");
+    if (!item) {
+      item = document.createElement("li");
+      item.id = "nav-account";
+      menu.appendChild(item);
+    }
+    const onAccountPage = /account\.html$/.test(window.location.pathname);
+    item.innerHTML = `<a href="account.html" class="nav-account-link${onAccountPage ? " active" : ""}">${
+      currentUser ? `👤 ${esc(currentUser.username)}` : "Log in"}</a>`;
+  }
+  renderNavAccount();
 
   function loadErrorHTML(err) {
     return `
@@ -395,7 +452,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         <span>from the International Bartenders Association</span>
       </p>` : "";
 
-    extras.innerHTML = relatedHTML + ibaHTML;
+    const manageHTML = canManage(drink) ? `
+      <div class="owner-actions">
+        <a class="btn-edit" href="community.html?edit=${drink.id}#share">✏️ Edit recipe</a>
+        <button type="button" class="btn-delete" data-delete-id="${drink.id}">🗑 Delete</button>
+      </div>` : "";
+
+    extras.innerHTML = manageHTML + relatedHTML + ibaHTML;
   }
 
   // Open a drink from a link like "low-abv.html#drink-103" (used by "Also try")
@@ -428,7 +491,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
+  // Called after a recipe is deleted, so lists on the page can refresh
+  const afterRecipeChange = [];
+
+  async function deleteRecipeById(id, button) {
+    const drink = findDrinkById(id);
+    const name = drink ? `"${drink.name}"` : "this recipe";
+    if (!window.confirm(`Delete ${name}? This can't be undone.`)) return;
+    if (button) button.disabled = true;
+    try {
+      await api(`/api/recipes/${encodeURIComponent(id)}`, { method: "DELETE" });
+      extraDrinks.delete(String(id));
+      if (modal && modal.classList.contains("active")) closeModal();
+      afterRecipeChange.forEach(fn => fn());
+    } catch (err) {
+      alert(err.message);
+      if (button) button.disabled = false;
+    }
+  }
+
   document.addEventListener("click", (e) => {
+    const deleteBtn = e.target.closest(".btn-delete[data-delete-id]");
+    if (deleteBtn) {
+      deleteRecipeById(deleteBtn.getAttribute("data-delete-id"), deleteBtn);
+      return;
+    }
+    if (e.target.closest(".btn-edit")) return; // a normal link to the edit form
+
     const favBtn = e.target.closest(".fav-btn");
     if (favBtn) {
       toggleFavorite(favBtn.getAttribute("data-name"));
@@ -575,6 +664,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (document.getElementById("minimalist-grid")) renderMinimalistGrid();
     if (document.getElementById("quiz-recommendations-grid")) renderQuizRecommendations();
     if (document.getElementById("community-grid")) renderCommunityGrid();
+    if (document.getElementById("my-recipes-grid")) renderMyRecipes();
   }
 
 
@@ -985,6 +1075,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
     reloadCommunity = () => loadCommunityPage(true);
+    afterRecipeChange.push(reloadCommunity);
 
     if (loadMoreBtn) loadMoreBtn.addEventListener("click", () => loadCommunityPage());
     if (unitBtn) unitBtn.addEventListener("click", () => { toggleUnit(); renderCommunityGrid(); });
@@ -994,7 +1085,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const recipeForm = document.getElementById("recipe-form");
-  if (recipeForm) {
+  const shareLoginPrompt = document.getElementById("share-login-prompt");
+  if (recipeForm && !currentUser) {
+    // Sharing needs an account: show the "Log in / Sign up" card instead of the form
+    recipeForm.classList.add("hidden");
+    if (shareLoginPrompt) shareLoginPrompt.classList.remove("hidden");
+    const intro = document.querySelector(".share-intro");
+    if (intro) intro.classList.add("hidden");
+  } else if (recipeForm) {
+    const shareTitle = document.getElementById("share-title");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    const currentPhoto = document.getElementById("current-photo");
+    const removePhotoBox = document.getElementById("remove-photo");
+    const signedInAs = document.getElementById("signed-in-as");
+    if (signedInAs) signedInAs.textContent = currentUser.username;
+    let editId = null;
     const ingredientRows = document.getElementById("ingredient-rows");
     const addIngredientBtn = document.getElementById("add-ingredient-btn");
     const formStatus = document.getElementById("form-status");
@@ -1110,7 +1215,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const payload = {
         name: f.name.value,
-        author: f.author.value,
         tagline: f.tagline.value,
         flavorProfile: f.flavorProfile.value || null,
         abvType: f.abvType.value || null,
@@ -1122,31 +1226,201 @@ document.addEventListener("DOMContentLoaded", async () => {
         ingredients,
         instructions: f.instructions.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean),
         image: photoData,
+        removeImage: !!(editId && removePhotoBox && removePhotoBox.checked && !photoData),
         website: f.website.value // hidden field, real visitors leave it empty
       };
 
+      const wasEditing = editId;
       submitBtn.disabled = true;
-      submitBtn.textContent = "Sending…";
+      submitBtn.textContent = wasEditing ? "Saving…" : "Sending…";
       try {
-        const result = await api("/api/recipes", { method: "POST", body: JSON.stringify(payload) });
+        const result = wasEditing
+          ? await api(`/api/recipes/${editId}`, { method: "PUT", body: JSON.stringify(payload) })
+          : await api("/api/recipes", { method: "POST", body: JSON.stringify(payload) });
+        resetForm();
         showStatus(result.message, "success");
-        recipeForm.reset();
-        photoData = null;
-        photoPreview.innerHTML = "";
-        ingredientRows.innerHTML = "";
-        for (let i = 0; i < 3; i++) addIngredientRow();
-        if (result.published && reloadCommunity) {
-          await reloadCommunity();
-          const drink = await fetchDrinkById(result.id);
+        const id = wasEditing || result.id;
+        extraDrinks.delete(String(id));
+        if (reloadCommunity) await reloadCommunity();
+        if (wasEditing || result.published) {
+          const drink = await fetchDrinkById(id);
           if (drink) openModal(drink);
         }
       } catch (err) {
         showStatus(err.message, "error");
+        if (!sessionToken) showStatus("Your login has expired. Please log in again (menu → Log in), then try once more.", "error");
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "Share recipe";
+        submitBtn.textContent = editId ? "Save changes" : "Share recipe";
       }
     });
+
+    // ---- Edit mode: community.html?edit=1001#share ----
+    function resetForm() {
+      editId = null;
+      recipeForm.reset();
+      photoData = null;
+      photoPreview.innerHTML = "";
+      ingredientRows.innerHTML = "";
+      for (let i = 0; i < 3; i++) addIngredientRow();
+      unitSelect.dispatchEvent(new Event("change"));
+      if (shareTitle) shareTitle.textContent = "Share your recipe";
+      submitBtn.textContent = "Share recipe";
+      if (cancelEditBtn) cancelEditBtn.classList.add("hidden");
+      if (currentPhoto) { currentPhoto.classList.add("hidden"); currentPhoto.querySelector(".current-photo-img").innerHTML = ""; }
+      if (/[?&]edit=/.test(window.location.search) && window.history && history.replaceState) {
+        history.replaceState(null, "", window.location.pathname + "#share");
+      }
+    }
+
+    async function startEditing(id) {
+      try {
+        const { recipe } = await api(`/api/recipes/${encodeURIComponent(id)}/edit`);
+        editId = recipe.id;
+        const f = recipeForm.elements;
+        f.name.value = recipe.name;
+        f.tagline.value = recipe.tagline === "Shared by the pour. community" ? "" : recipe.tagline;
+        f.flavorProfile.value = recipe.flavorProfile || "";
+        f.abvType.value = recipe.type || "";
+        f.glass.value = recipe.glass || "";
+        f.method.value = recipe.method || "";
+        f.garnish.value = recipe.garnish || "";
+        f.ice.value = recipe.ice || "";
+        f.instructions.value = (recipe.instructions || []).join("\n");
+        unitSelect.value = "ml";
+        ingredientRows.innerHTML = "";
+        const count = Math.max(2, recipe.ingredients.length);
+        for (let i = 0; i < count; i++) addIngredientRow();
+        recipe.ingredients.forEach((ing, i) => {
+          const row = ingredientRows.children[i];
+          row.querySelector(".ing-name").value = ing.name;
+          row.querySelector(".ing-amount").value = formatAmount(ing.oz * CONVERSIONS.ml);
+        });
+        unitSelect.dispatchEvent(new Event("change"));
+        if (recipe.image && currentPhoto) {
+          const img = document.createElement("img");
+          img.src = imageUrl(recipe.image);
+          img.alt = "Current photo";
+          const holder = currentPhoto.querySelector(".current-photo-img");
+          holder.innerHTML = "";
+          holder.appendChild(img);
+          if (removePhotoBox) removePhotoBox.checked = false;
+          currentPhoto.classList.remove("hidden");
+        }
+        if (shareTitle) shareTitle.textContent = `Edit "${recipe.name}"`;
+        submitBtn.textContent = "Save changes";
+        if (cancelEditBtn) cancelEditBtn.classList.remove("hidden");
+        formStatus.classList.add("hidden");
+        document.getElementById("share").scrollIntoView({ block: "start" });
+      } catch (err) {
+        showStatus(err.message, "error");
+      }
+    }
+
+    if (cancelEditBtn) cancelEditBtn.addEventListener("click", () => { resetForm(); formStatus.classList.add("hidden"); });
+    const editParam = new URLSearchParams(window.location.search).get("edit");
+    if (editParam && /^\d+$/.test(editParam)) startEditing(editParam);
+  }
+
+
+  // 9c. ACCOUNT PAGE: LOG IN, SIGN UP, LOG OUT, MY RECIPES ("account.html")
+  const accountAuth = document.getElementById("account-auth");
+  const accountPanel = document.getElementById("account-panel");
+  if (accountAuth && accountPanel) {
+    const next = safeNext(new URLSearchParams(window.location.search).get("next"));
+    const myGrid = document.getElementById("my-recipes-grid");
+    let myDrinks = [];
+
+    const STATUS_BADGE = {
+      0: `<span class="status-badge pending">Waiting for review</span>`,
+      1: `<span class="community-badge">Live</span>`,
+      2: `<span class="status-badge hidden-status">Hidden by admin</span>`
+    };
+
+    function renderMyRecipes() {
+      if (!myDrinks.length) {
+        setGrid(myGrid, `
+          <div class="no-results-card card">
+            <p>You haven't shared any recipes yet.</p>
+            <p class="inline-suggestion"><a href="community.html#share">Share your first recipe</a></p>
+          </div>`);
+        return;
+      }
+      setGrid(myGrid, myDrinks.map((d, i) => renderCardHTML(d, STATUS_BADGE[d.status] || "", `
+        <div class="card-owner-actions">
+          <a class="btn-edit" href="community.html?edit=${d.id}#share">✏️ Edit</a>
+          <button type="button" class="btn-delete" data-delete-id="${d.id}">🗑 Delete</button>
+        </div>`, i)).join(""));
+    }
+
+    async function loadMyRecipes() {
+      try {
+        const { recipes } = await api("/api/my/recipes");
+        myDrinks = recipes;
+        recipes.forEach(d => extraDrinks.set(String(d.id), d));
+        resetReveals(myGrid);
+        renderMyRecipes();
+      } catch (err) {
+        if (!sessionToken) return showAccount(); // login expired
+        setGrid(myGrid, loadErrorHTML(err));
+      }
+    }
+    afterRecipeChange.push(loadMyRecipes);
+
+    function showAccount() {
+      renderNavAccount();
+      if (!currentUser) {
+        accountPanel.classList.add("hidden");
+        accountAuth.classList.remove("hidden");
+        document.title = "Log in or sign up | pour.";
+        return;
+      }
+      accountAuth.classList.add("hidden");
+      accountPanel.classList.remove("hidden");
+      document.title = "My account | pour.";
+      document.getElementById("account-username").textContent = currentUser.username;
+      document.getElementById("admin-note").classList.toggle("hidden", !currentUser.isAdmin);
+      loadMyRecipes();
+    }
+
+    function wireAuthForm(form, path) {
+      const status = form.querySelector(".form-status");
+      const button = form.querySelector('button[type="submit"]');
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = form.elements.username.value.trim();
+        const password = form.elements.password.value;
+        const show = (msg) => { status.textContent = msg; status.className = "form-status error"; };
+        if (form.elements.password2 && password !== form.elements.password2.value) return show("The two passwords don't match.");
+        button.disabled = true;
+        try {
+          const result = await api(path, { method: "POST", body: JSON.stringify({ username, password }) });
+          setSession(result.token, result.user);
+          form.reset();
+          status.className = "form-status hidden";
+          if (next) { window.location.href = next; return; }
+          showAccount();
+        } catch (err) {
+          show(err.message);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    }
+    wireAuthForm(document.getElementById("login-form"), "/api/auth/login");
+    wireAuthForm(document.getElementById("signup-form"), "/api/auth/signup");
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      try { await api("/api/auth/logout", { method: "POST" }); } catch (e) { /* log out locally anyway */ }
+      clearSession();
+      myDrinks = [];
+      showAccount();
+    });
+
+    if (unitBtn) unitBtn.addEventListener("click", () => { toggleUnit(); renderMyRecipes(); });
+    if (servingsInput) servingsInput.addEventListener("input", renderMyRecipes);
+
+    showAccount();
   }
 
 

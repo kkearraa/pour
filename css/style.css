@@ -1287,3 +1287,51 @@ img { max-width: 100%; }
   .share-card { padding: 1.25rem; }
   .ingredient-row { grid-template-columns: minmax(0, 1fr) 5rem 1.8rem 2.2rem; }
 }
+
+/* =====================================================================
+   ACCOUNTS: log in / sign up, my recipes, edit & delete buttons
+   ===================================================================== */
+.auth-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: start; }
+.auth-card { padding: 2rem; }
+.auth-card h2 { color: var(--accent); margin-bottom: 1.25rem; }
+.auth-card .submit-btn { margin-top: 0.25rem; }
+.account-header { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; padding: 1.75rem 2rem; margin-bottom: 2rem; }
+.account-header h2 { margin-bottom: 0.4rem; }
+.account-header .share-intro { margin-bottom: 0.3rem; }
+.account-actions { display: flex; align-items: center; gap: 1rem; }
+.account-actions .submit-btn { margin-top: 0; text-decoration: none; }
+.my-recipes-title { margin: 0.5rem 0 1rem; font-size: 1.3rem; }
+
+.share-login-prompt { text-align: center; padding: 1.5rem 1rem 0.5rem; }
+.share-login-prompt p { color: var(--text-muted); margin-bottom: 1.25rem; max-width: 520px; margin-left: auto; margin-right: auto; }
+.share-login-prompt .submit-btn { display: inline-block; text-decoration: none; }
+.cancel-edit-btn { margin-left: 1rem; font-size: 0.95rem; }
+
+.current-photo { margin: -0.25rem 0 1rem; }
+.current-photo img { max-width: 220px; max-height: 160px; border-radius: 10px; object-fit: cover; display: block; margin: 0.4rem 0 0.5rem; }
+.current-photo .form-inline { margin-bottom: 0; }
+
+.owner-actions, .card-owner-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.owner-actions { margin-bottom: 1.25rem; }
+.card-owner-actions { margin-top: 1rem; }
+.btn-edit, .btn-delete {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--border-color); background: transparent; color: var(--text-main); text-decoration: none;
+}
+.btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+.btn-delete:hover { border-color: #ef4444; color: #ef4444; }
+.btn-delete:disabled { opacity: 0.5; cursor: wait; }
+
+.status-badge {
+  display: inline-block; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem;
+  font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase;
+}
+.status-badge.pending { background-color: #ca8a04; color: #fefce8; }
+.status-badge.hidden-status { background-color: #475569; color: #f1f5f9; }
+
+@media (max-width: 760px) {
+  .auth-grid { grid-template-columns: 1fr; }
+  .auth-card, .account-header { padding: 1.25rem; }
+}
+.share-intro a, .form-hint a, .share-login-prompt a:not(.submit-btn) { color: var(--accent); text-decoration: underline; }
