@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="pour-api" content="https://pour-production-e8178907.up.railway.app">
+  <script>/* Set the theme before the page is drawn (no dark flash) */
+  (function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <title>Community Cocktail Recipes: Share Your Own | pour.</title>
+  <meta name="description" content="Cocktail recipes shared by pour. readers, and a form to add your own home-bar creation with ingredients, steps and a photo.">
+  <meta name="keywords" content="community cocktail recipes, share cocktail recipe, homemade cocktails, home bar recipes, user cocktail recipes">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://kkearraa.github.io/pour/community.html">
+
+  <!-- Social share preview (Facebook, Messenger, LinkedIn, Discord, X...) -->
+  <meta property="og:title" content="Community Cocktail Recipes: Share Your Own | pour.">
+  <meta property="og:description" content="Cocktail recipes shared by pour. readers, and a form to add your own home-bar creation with ingredients, steps and a photo.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="pour.">
+  <meta property="og:url" content="https://kkearraa.github.io/pour/community.html">
+  <meta property="og:image" content="https://kkearraa.github.io/pour/images/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="pour. logo next to a Negroni cocktail, with the text: Cocktail recipes for your home bar">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./images/logo/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="./images/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="./images/logo/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/style.min.css">
+  <script src="./js/script.min.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header>
+    <nav class="navbar">
+      <a href="index.html" class="logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="logo-img logo-img--dark-theme">
+        <img src="./images/logo/pour-logo-on-light.svg" alt="pour." class="logo-img logo-img--light-theme">
+      </a>
+      <div class="nav-controls">
+        <button id="theme-toggle" class="theme-btn">☀️ Light</button>
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cabinet.html">Cabinet Search</a></li>
+        <li><a href="low-abv.html">Zero-Proof / Low-ABV</a></li>
+        <li><a href="minimalist.html">3-Ingredient</a></li>
+        <li><a href="quiz.html">Flavor Quiz</a></li>
+        <li><a href="community.html" class="active">Community</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Community Recipes</h1>
+    <p>Cocktails shared by pour. readers. Got a favorite of your own? Add it below.</p>
+    <p class="hero-links"><a href="#share">Share your recipe</a> · Looking for the classics? See the <a href="index.html">most popular cocktails</a></p>
+  </section>
+
+  <main class="container">
+
+    <div class="controls-bar">
+      <div class="control-group">
+        <label for="servings-input">Servings:</label>
+        <input type="number" id="servings-input" value="1" min="1" max="12" class="servings-input">
+        <span>person(s)</span>
+      </div>
+
+      <div class="control-group">
+        <label>Unit System:</label>
+        <button id="unit-toggle" class="unit-btn">ML</button>
+      </div>
+    </div>
+
+    <!-- Community recipes, loaded from the database by script.js -->
+    <section id="community-grid" class="cocktail-grid" aria-live="polite">
+    </section>
+    <div class="load-more-wrap">
+      <button id="community-load-more" class="unit-btn load-more-btn hidden" type="button">Load more recipes</button>
+    </div>
+
+    <!-- SHARE YOUR RECIPE -->
+    <section id="share" class="card share-card" aria-labelledby="share-title">
+      <h2 id="share-title">Share your recipe</h2>
+      <p class="share-intro">Fields marked * are required. Your recipe is saved in our database and shown on this page with your name.</p>
+
+      <form id="recipe-form" class="recipe-form" novalidate>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Cocktail name *</span>
+            <input class="search-input" name="name" type="text" maxlength="80" minlength="2" required placeholder="e.g. Rosemary Paloma">
+          </label>
+          <label class="form-field">
+            <span>Your name</span>
+            <input class="search-input" name="author" type="text" maxlength="60" placeholder="Shown as 'by …' (optional)" autocomplete="nickname">
+          </label>
+          <label class="form-field form-field--wide">
+            <span>Short description</span>
+            <input class="search-input" name="tagline" type="text" maxlength="120" placeholder="e.g. Herbal & Bright">
+          </label>
+          <label class="form-field">
+            <span>Flavor</span>
+            <select class="search-input" name="flavorProfile">
+              <option value="">Choose…</option>
+              <option value="sour">Sour &amp; citrusy</option>
+              <option value="strong">Spirit-forward</option>
+              <option value="sweet">Sweet &amp; rich</option>
+              <option value="bitter">Bitter &amp; herbal</option>
+              <option value="refreshing">Refreshing</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Alcohol</span>
+            <select class="search-input" name="abvType">
+              <option value="">Regular cocktail</option>
+              <option value="low">Low alcohol</option>
+              <option value="zero">Alcohol-free (0%)</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Glass</span>
+            <input class="search-input" name="glass" type="text" maxlength="40" placeholder="e.g. Highball Glass">
+          </label>
+          <label class="form-field">
+            <span>Method</span>
+            <input class="search-input" name="method" type="text" maxlength="40" placeholder="e.g. Shaken">
+          </label>
+          <label class="form-field">
+            <span>Garnish</span>
+            <input class="search-input" name="garnish" type="text" maxlength="80" placeholder="e.g. Rosemary sprig">
+          </label>
+          <label class="form-field">
+            <span>Ice</span>
+            <input class="search-input" name="ice" type="text" maxlength="40" placeholder="e.g. Cubed ice">
+          </label>
+        </div>
+
+        <fieldset class="form-fieldset">
+          <legend>Ingredients * <span class="form-hint">(2 to 12, amounts for one drink)</span></legend>
+          <label class="form-inline">
+            <span>Amounts in</span>
+            <select class="search-input unit-select" name="unit">
+              <option value="ml">ml</option>
+              <option value="cl">cl</option>
+              <option value="oz">oz</option>
+            </select>
+          </label>
+          <div id="ingredient-rows" class="ingredient-rows"></div>
+          <datalist id="ingredient-suggestions"></datalist>
+          <button type="button" id="add-ingredient-btn" class="btn-clear add-ingredient-btn">+ Add ingredient</button>
+        </fieldset>
+
+        <label class="form-field form-field--wide">
+          <span>Instructions * <span class="form-hint">(one step per line)</span></span>
+          <textarea class="search-input" name="instructions" rows="5" maxlength="6000" required
+                    placeholder="Add everything to a shaker with ice.&#10;Shake hard for 15 seconds.&#10;Strain into a chilled glass."></textarea>
+        </label>
+
+        <label class="form-field form-field--wide">
+          <span>Photo <span class="form-hint">(optional, JPG / PNG / WebP)</span></span>
+          <input class="search-input" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+        </label>
+        <div id="photo-preview" class="photo-preview"></div>
+
+        <!-- Spam trap: hidden from people, bots fill it in -->
+        <label class="hp-field" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+
+        <p class="form-hint">By sharing, you agree that your recipe (and the name you entered) is shown publicly on pour. Please drink responsibly.</p>
+        <button type="submit" class="cookie-btn submit-btn">Share recipe</button>
+        <p id="form-status" class="form-status hidden" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+  </main>
+  <!-- Recipe Details Modal -->
+  <div id="recipe-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content">
+      <button id="modal-close-btn" class="modal-close">&times;</button>
+      <h2 id="modal-title">Drink Name</h2>
+      <p id="modal-tagline" class="card-subtitle">Tagline</p>
+      
+      <div class="modal-meta-grid">
+        <div><strong>Glassware:</strong> <span id="modal-glass">-</span></div>
+        <div><strong>Method:</strong> <span id="modal-method">-</span></div>
+        <div><strong>Garnish:</strong> <span id="modal-garnish">-</span></div>
+        <div><strong>Ice:</strong> <span id="modal-ice">-</span></div>
+      </div>
+
+      <h3>Ingredients</h3>
+      <ul id="modal-ingredients" class="card-ingredients"></ul>
+
+      <h3 style="margin-top:1.25rem;">Instructions</h3>
+      <ol id="modal-instructions" class="modal-instructions"></ol>
+    </div>
+  </div>
+
+  <!-- EXPLORE MORE (internal links to the other pages) -->
+  <section class="explore-more" aria-labelledby="explore-title">
+    <h2 id="explore-title">Explore more</h2>
+    <div class="explore-grid">
+      <a href="index.html" class="explore-card"><strong>Popular cocktails</strong><span>Margarita, Mojito, Negroni and other classics, with servings and unit converter.</span></a>
+      <a href="cabinet.html" class="explore-card"><strong>Cabinet search</strong><span>Tick the bottles you have and see which cocktails you can make right now.</span></a>
+      <a href="minimalist.html" class="explore-card"><strong>3-ingredient cocktails</strong><span>Great drinks that need only three bottles.</span></a>
+      <a href="quiz.html" class="explore-card"><strong>Flavor quiz</strong><span>Answer three quick questions and get a cocktail picked for you.</span></a>
+    </div>
+  </section>
+
+  <!-- GLOBAL FOOTER -->
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <a href="index.html" class="footer-logo" aria-label="pour. home">
+        <img src="./images/logo/pour-logo-on-dark.svg" alt="pour." class="footer-logo-img">
+      </a>
+      <p class="footer-tagline">Curated drinks, modern mixology.</p>
+    </div>
+
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="cabinet.html">Cabinet</a>
+      <a href="low-abv.html">Low &amp; Zero-ABV</a>
+      <a href="minimalist.html">3-Ingredient</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="community.html">Community</a>
+    </div>
+
+    <div class="footer-legal">
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+
+    <p class="footer-responsible">Please drink responsibly. pour. is meant for adults of legal drinking age. Want to cut down? <a href="https://www.drinkaware.co.uk/" target="_blank" rel="noopener">Drinkaware</a> has free advice.</p>
+
+    <div class="footer-copy">
+      <p>&copy; <span id="copyright-year"></span> pour. by Kira Pugachova. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div id="cookie-banner" class="cookie-banner hidden" aria-live="polite">
+  <div class="cookie-content">
+    <p>We use local storage to save your favorited drinks and settings. No tracking cookies here. <a href="privacy.html">Privacy Policy</a></p>
+    <button id="accept-cookies-btn" class="cookie-btn">Got it</button>
+  </div>
+</div>
+</body>
+</html>
