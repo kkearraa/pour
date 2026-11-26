@@ -158,26 +158,26 @@ COMMIT;
 
 ---
 
-## 6. Putting it online
+## 6. Putting it online (Railway + GitHub Pages)
 
-**GitHub Pages can't run this.** It only hosts static files — no Node.js, no MySQL. You need a host that
-runs Node.js plus a MySQL database. Options students often use: **Railway** or **Render** (Node + MySQL add-on),
-**Aiven** (free MySQL), or any VPS.
+GitHub Pages only hosts files; it can't run Node.js or MySQL. So the pages stay on GitHub Pages and the
+server + database run on **Railway** (free plan, no credit card; the service sleeps when idle, so the first
+visit after a while takes a few seconds).
 
-1. Create a MySQL database at the host and note host/port/user/password.
-2. Load the tables: run `database/schema.sql` and `database/seed.sql` against it (or `npm run db:setup` with
-   `DB_HOST`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `DB_APP_HOST=%` pointing at it).
-3. Deploy the whole `pour` folder. Start command: `cd server && npm install && npm start`.
-4. Set the `.env` values as the host's **environment variables** (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, …,
-   plus `TRUST_PROXY=true` and `DB_SSL=true` if the database needs SSL). The host sets `PORT` itself.
-5. Photos are saved in `uploads/`. Many hosts wipe the disk on every deploy — attach a **persistent volume**
-   to `uploads/` (or later move photos to object storage such as S3).
+1. Push this project to GitHub (`server/.env` is ignored, so no passwords are uploaded).
+2. On railway.com: **New Project → Deploy from GitHub repo** → pick `pour`. Railway runs `npm start` from the root `package.json`.
+3. In the project: **+ Create → Database → MySQL**.
+4. Click the `pour` service → **Variables**, add:
+   - `MYSQL_URL` = `${{MySQL.MYSQL_URL}}` (reference to the database)
+   - `DB_AUTO_SETUP` = `true` (creates the tables and the 21 recipes on first start)
+   - `TRUST_PROXY` = `true`
+   - `ALLOWED_ORIGINS` = `https://kkearraa.github.io`
+   - `UPLOAD_DIR` = `/data/uploads`
+5. Right-click the `pour` service → **Attach volume**, mount path `/data` (keeps uploaded photos when Railway redeploys).
+6. **Settings → Networking → Generate Domain** → you get an address like `https://pour-production.up.railway.app`.
+7. Add `<meta name="pour-api" content="https://YOUR-ADDRESS.up.railway.app">` to the `<head>` of every page and push again.
 
-**Want to keep the pages on GitHub Pages?** Deploy only the server somewhere, then:
-- add this line to the `<head>` of every page: `<meta name="pour-api" content="https://your-server.example.com">`
-- set `ALLOWED_ORIGINS=https://kkearraa.github.io` in the server's environment.
-
----
+Check: `https://YOUR-ADDRESS.up.railway.app/api/health` should show `{"ok":true}`.
 
 ## 7. How the database follows the "Speeding up website databases" slides
 

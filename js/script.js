@@ -165,6 +165,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Uploaded photos are stored on the API server, so when the pages are hosted
+  // elsewhere (GitHub Pages) their address must point at that server.
+  function imageUrl(src) {
+    if (!src) return src;
+    return (API_BASE && /^uploads\//.test(src)) ? `${API_BASE}/${src}` : src;
+  }
+
   // Everything that goes into innerHTML passes through esc(), because
   // visitors can now add recipes and their text must never run as HTML.
   function esc(value) {
@@ -485,7 +492,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     return `
         <div class="card-image-wrapper">
-          <img src="${esc(cocktail.image)}" ${srcset} alt="${alt}" class="card-img" width="400" height="200" ${loading} decoding="async" />
+          <img src="${esc(imageUrl(cocktail.image))}" ${srcset} alt="${alt}" class="card-img" width="400" height="200" ${loading} decoding="async" />
         </div>`;
   }
 
@@ -538,7 +545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "name": drink.name,
       "description": `${drink.name}: ${String(drink.tagline || "").toLowerCase()}.` +
         (drink.glass ? ` Served in a ${drink.glass.toLowerCase()}${drink.method ? `, ${drink.method.toLowerCase()}` : ""}.` : ""),
-      ...(drink.image ? { "image": new URL(drink.image, document.baseURI).href } : {}),
+      ...(drink.image ? { "image": new URL(imageUrl(drink.image), document.baseURI).href } : {}),
       "author": drink.author ? { "@type": "Person", "name": drink.author } : { "@type": "Organization", "name": "pour." },
       "recipeCategory": "Cocktail",
       "recipeYield": "1 serving",

@@ -19,14 +19,28 @@ const bool = (key, fallback) => /^(1|true|yes|on)$/i.test(env(key, String(fallba
 
 const siteRoot = path.resolve(__dirname, "..");
 
+// Hosting services like Railway give the database as one URL
+// (mysql://user:password@host:port/database) or as MYSQLHOST, MYSQLUSER, ... variables.
+let fromUrl = {};
+const dbUrl = env("DATABASE_URL", env("MYSQL_URL", ""));
+if (/^mysql:\/\//i.test(dbUrl)) {
+  const u = new URL(dbUrl);
+  fromUrl = {
+    host: u.hostname, port: u.port || "3306",
+    user: decodeURIComponent(u.username), password: decodeURIComponent(u.password),
+    database: decodeURIComponent(u.pathname.replace(/^\//, ""))
+  };
+}
+const pick = (key, railwayKey, urlKey, fallback) => env(key, env(railwayKey, fromUrl[urlKey] || fallback));
+
 module.exports = {
   port: Number(env("PORT", 3000)),
   db: {
-    host: env("DB_HOST", "localhost"),
-    port: Number(env("DB_PORT", 3306)),
-    user: env("DB_USER", "pour_app"),
-    password: env("DB_PASSWORD", ""),
-    database: env("DB_NAME", "pour"),
+    host: pick("DB_HOST", "MYSQLHOST", "host", "localhost"),
+    port: Number(pick("DB_PORT", "MYSQLPORT", "port", 3306)),
+    user: pick("DB_USER", "MYSQLUSER", "user", "pour_app"),
+    password: pick("DB_PASSWORD", "MYSQLPASSWORD", "password", ""),
+    database: pick("DB_NAME", "MYSQLDATABASE", "database", "pour"),
     poolSize: Number(env("DB_POOL_SIZE", 10)),
     ssl: bool("DB_SSL", false)
   },
@@ -34,6 +48,8 @@ module.exports = {
   uploadDir: path.resolve(siteRoot, env("UPLOAD_DIR", "uploads")),
   cacheTtlSeconds: Number(env("CACHE_TTL_SECONDS", 300)),
   autoPublish: bool("AUTO_PUBLISH", true),
+  // Create the tables and load the starting recipes on first start if they are missing
+  autoSetup: bool("DB_AUTO_SETUP", false),
   adminToken: env("ADMIN_TOKEN", ""),
   allowedOrigins: env("ALLOWED_ORIGINS", "").split(",").map(s => s.trim()).filter(Boolean),
   trustProxy: bool("TRUST_PROXY", false),
